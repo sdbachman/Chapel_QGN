@@ -1,8 +1,32 @@
 use parameters;
 
+////////////////////////////////////////////////////////////
+//   NOTE: All spectral arrays will be transposed with    //
+//   respect to their physical space counterparts. This   //
+//   is to enable the code to use serial 1D FFTs.         //
+////////////////////////////////////////////////////////////
+
+/* Vertical domain at layer centers */
+var zl = {1..nz};
+var zl2 = {1..nz, 1..nz};
+
+/* Vertical domain at layer interfaces */
+var zi = {0..nz};
+
+/* Horizontal domain (physical space) */
 var D = {1..nx,1..ny};
-var D_out = {1..nx, 1..nyp};
-var D_outT = {1..nyp, 1..nx};
+
+/* Horizontal domain (spectral space) */
+var D_hat = {1..ny2p, 1..nx};
+var D_hatT = {1..nx, 1..ny2p};
+
+/* 1D slices of the horizontal domain */
 var D_nx = {1..nx};
 var D_ny = {1..ny};
-var D_nyp = {1..nyp};
+var D_nx2p = {1..nx2p};
+var D_ny2p = {1..ny2p};
+
+/* 3D domain */
+var D3 = {1..nx,1..ny,1..nz};
+var D3_hat = {1..ny2p,1..nx,1..nz};
+var D3_hatT = {1..nx,1..ny2p,1..nz};

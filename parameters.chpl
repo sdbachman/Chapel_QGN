@@ -12,14 +12,17 @@ param Ly : real = 1.024e6;
 param Htot : real = 4e3;
 
 /* Grid: Horizontal part must be divisible by 3. */
-var nx = 8;
-var ny = 8;
-var nyp = (ny/2)+1;
-/*
-param nx : int = (3*128)/2;
-param ny : int = (3*128)/2;
-param nz : int = 4;
-*/
+param nx : int = 4;
+param ny : int = 8;
+//param nx : int  = (3*128)/2;
+//param ny : int  = (3*128)/2;
+param nz : int  = 2;
+
+param nx3p : int = (nx/3)+1;
+param ny3p : int = (ny/3)+1;
+param nx2p : int = (nx/2)+1;
+param ny2p : int = (ny/2)+1;
+param nx3p2 : int = (2*(nx/3)+1);
 
 /* Coriolis coefficients */
 param f0 : real = 1e-4;
