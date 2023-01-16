@@ -1,6 +1,15 @@
 use parameters;
 use domains;
 
+/* FOR TESTING */
+var q_tmp : [D3] real;
+var q_tmp2 : [D3] real;
+var q_hatT : [D3_hatT] complex;
+
+/* Location of horizontal grid */
+  var x : [D] real;
+  var y : [D] real;
+
 /* Horizontal grid spacing */
   const dx : real = Lx / nx;
   const dy : real = Ly / ny;
@@ -28,6 +37,9 @@ use domains;
   var kx : [D_hat] real;
   var ky : [D_hat] real;
   var k2 : [D_hat] real;
+
+/* Potential vorticity */
+  var q : [D3] real;
 
 /* Spectral potential vorticity */
   var q_hat : [D3_hat] complex;

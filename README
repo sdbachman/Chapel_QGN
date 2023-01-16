@@ -1,1 +1,15 @@
 chpl -lopenblas -lfftw3 -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib" QGN_Driver.chpl
+
+
+FORTRAN:
+! Generic holders for FFT outputs
+complex(dp) :: spec(nx/2 +1,ny,nz), specE((nx/2 +1)*ny*nz)
+! Wavenumbers
+real(dp), dimension(nx/2 +1,ny) :: kx, ky, k2
+
+CHAPEL:
+Physical space variables stored in (nz,nx,ny) arrays. This is to allow passing by reference and to be compatible with C-pointers in FFTW without slicing.
+Spectral space variables stored in (nz, ny/2+1, nx) arrays, after transposing.
+
+Wavenumbers should be in (ny/2+1, nx) arrays.
+

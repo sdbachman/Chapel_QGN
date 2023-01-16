@@ -26,7 +26,12 @@ var D_ny = {1..ny};
 var D_nx2p = {1..nx2p};
 var D_ny2p = {1..ny2p};
 
+/* 2D vertical slices */
+var D_zx = {1..nz,1..nx};
+var D_zy = {1..nz,1..ny};
+var D_zyhat = {1..nz,1..ny2p};
+
 /* 3D domain */
-var D3 = {1..nx,1..ny,1..nz};
-var D3_hat = {1..ny2p,1..nx,1..nz};
-var D3_hatT = {1..nx,1..ny2p,1..nz};
+var D3 = {1..nz,1..nx,1..ny};
+var D3_hat = {1..nz,1..ny2p,1..nx};
+var D3_hatT = {1..nz,1..nx,1..ny2p};

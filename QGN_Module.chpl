@@ -15,7 +15,7 @@ use FFT_utils;
 use Stratification;
 use Shear;
 
-
+use compare_fortran;
 
 ////////////////////////////////////////////////////////////////
 //  Initialize: Set up the initial PV field, modes, and FFTs  //
@@ -23,44 +23,10 @@ use Shear;
 
 proc Initialize() {
 
-var arr : [D3] real;
+//load_fortran_grid();
+load_1layer_test(q);
+print_array_3D(q);
 
-/* Some stuff to test FFTs */
-var arr_f : [D3_hatT] complex;
-var arr_f2 : [D3_hatT] complex;
-var arr_b : [D3] real;
-var arr_b2 : [D3] real;
-var arr_b_norm : [D3] real;
-var arr_b_norm2 : [D3] real;
-
-var tmp_arr_in : [D] real;
-var tmp_arr_out : [D_hatT] complex;
-
-var q_hat2 : [D3_hat] complex;
-var q_hatT : [D3_hatT] complex;
-
-/* Location of horizontal grid */
-var x : [D] real;
-var y : [D] real;
-
-
-var f = open("../test_grid.dat", iomode.r);
-var r = f.reader(kind=ionative);
-
-// This will produce a grid that seems backwards to Fortran (nz x ny x nx)
-for i in 1..nx {
-  for j in 1..ny {
-    //for k in 1..nz {
-      var tmp : real;
-      r.readBinary(tmp);
-    //  arr[i,j,k] = tmp;
-    //}
-    arr[i,j,1] = tmp;
-  }
-}
-r.close();
-// Sanity check
-arr[..,..,2] = arr[..,..,1];
 
 writeln("---------------------------------------------------------------");
 writeln("dx = ", dx,"                dy = ", dy);
@@ -130,19 +96,13 @@ writeln("dx = ", dx,"                dy = ", dy);
 
     /* Transform the initial condition */
       writeln(" Transforming the initial condition ");
-      for k in 1..nz {
-        execute_forward_FFTs(arr[..,..,k], q_hat[..,..,k]);
-      }
+      execute_forward_FFTs(q, q_hat);
 
       DeAlias(q_hat);
 
-/*
-writeln("q_hat, layer 1:");
-for i in 1..ny2p {
-  writeln(q_hat[i,..,1] : real);
-}
-writeln();
-*/
+
+//print_array_3D(q_hat);
+
 
 }
 
@@ -153,13 +113,13 @@ writeln();
 
 proc DeAlias(ref field : [] complex) {
 
-    for i in ny3p..ny2p {
-      field[i,..,..] = 0;
-    }
-    for j in nx3p..nx3p2 {
+    for j in ny3p..ny2p {
       field[..,j,..] = 0;
     }
-    field[1,1,..] = 0;
+    for k in nx3p..nx3p2 {
+      field[..,..,k] = 0;
+    }
+    field[..,1,1] = 0;
 
 }
 

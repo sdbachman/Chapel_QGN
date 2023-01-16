@@ -16,7 +16,7 @@ param nx : int = 4;
 param ny : int = 8;
 //param nx : int  = (3*128)/2;
 //param ny : int  = (3*128)/2;
-param nz : int  = 2;
+param nz : int  = 3;
 
 param nx3p : int = (nx/3)+1;
 param ny3p : int = (ny/3)+1;
