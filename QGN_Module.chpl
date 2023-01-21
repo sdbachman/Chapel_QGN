@@ -202,14 +202,10 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
     Jacobian(q_in,jaco_hat);
     RHS = -jaco_hat;
 
-  //writeln("RHS:");
-  //print_array_2D(RHS[1,..,..]);
-  //writeln();
-
   /* Mean advection, beta and viscosity */
     for k in 1..nz {
-      RHS[k,..,..] = RHS[k,..,..] - uBar[k]*1i*kx*q_hat[k,..,..]
-                 - (beta + qyBar[k])*v_hat[k,..,..] - A8*(k2**4)*q_hat[k,..,..];
+      RHS[k,..,..] = RHS[k,..,..] - uBar[k]*1i*kx*q_in[k,..,..]
+                 - (beta + qyBar[k])*v_hat[k,..,..] - A8*(k2**4)*q_in[k,..,..];
     }
 
   /* Ekman */
