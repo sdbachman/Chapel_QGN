@@ -14,11 +14,11 @@ var zl2 = {1..nz, 1..nz};
 var zi = {0..nz};
 
 /* Horizontal domain (physical space) */
-var D = {1..nx,1..ny};
+var D = {1..ny,1..nx};
 
 /* Horizontal domain (spectral space) */
-var D_hat = {1..ny2p, 1..nx};
-var D_hatT = {1..nx, 1..ny2p};
+var D_hat = {1..nx2p, 1..ny};
+var D_hatT = {1..ny, 1..nx2p};
 
 /* 1D slices of the horizontal domain */
 var D_nx = {1..nx};
@@ -29,9 +29,9 @@ var D_ny2p = {1..ny2p};
 /* 2D vertical slices */
 var D_zx = {1..nz,1..nx};
 var D_zy = {1..nz,1..ny};
-var D_zyhat = {1..nz,1..ny2p};
+var D_zxhat = {1..nz,1..nx2p};
 
 /* 3D domain */
-var D3 = {1..nz,1..nx,1..ny};
-var D3_hat = {1..nz,1..ny2p,1..nx};
-var D3_hatT = {1..nz,1..nx,1..ny2p};
+var D3 = {1..nz,1..ny,1..nx};
+var D3_hat = {1..nz,1..nx2p,1..ny};
+var D3_hatT = {1..nz,1..ny,1..nx2p};

@@ -3,40 +3,44 @@ use parameters;
 use domains;
 use arrays;
 
-proc load_fortran_grid(out arr : [] real) {
+proc load_fortran_grid(inout arr : [?D] real) {
+
+var tmp_arr : [D] real;
 
 var f = open("../../test_grid1.dat", iomode.r);
 var r = f.reader(kind=ionative);
-for i in 1..nx {
-  for j in 1..ny {
-      var tmp : real;
-      r.readBinary(tmp);
-    arr[1,i,j] = tmp;
+for j in 1..ny {
+  for i in 1..nx {
+    var tmp : real;
+    r.readBinary(tmp);
+    tmp_arr[1,j,i] = tmp;
   }
 }
 r.close();
 
 f = open("../../test_grid2.dat", iomode.r);
 r = f.reader(kind=ionative);
-for i in 1..nx {
-  for j in 1..ny {
-      var tmp : real;
-      r.readBinary(tmp);
-    arr[1,i,j] = tmp;
+for j in 1..ny {
+  for i in 1..nx {
+    var tmp : real;
+    r.readBinary(tmp);
+    tmp_arr[2,j,i] = tmp;
   }
 }
 r.close();
 
 f = open("../../test_grid3.dat", iomode.r);
 r = f.reader(kind=ionative);
-for i in 1..nx {
-  for j in 1..ny {
-      var tmp : real;
-      r.readBinary(tmp);
-    arr[1,i,j] = tmp;
+for j in 1..ny {
+  for i in 1..nx {
+    var tmp : real;
+    r.readBinary(tmp);
+    tmp_arr[3,j,i] = tmp;
   }
 }
 r.close();
+
+arr = tmp_arr;
 
 }
 
@@ -46,11 +50,11 @@ var tmp_arr : [D] real;
 
 var f = open("../test_grid.dat", iomode.r);
 var r = f.reader(kind=ionative);
-for i in 1..nx {
-  for j in 1..ny {
+for j in 1..ny {
+  for i in 1..nx {
     var tmp : real;
     r.readBinary(tmp);
-    tmp_arr[1,i,j] = tmp;
+    tmp_arr[1,j,i] = tmp;
   }
 }
 r.close();
@@ -80,6 +84,17 @@ proc print_array_2D(arr : [?dom]) {
 
 for i in dom[..,1] {
   writeln(arr[i,..] : real);
+  writeln();
+}
+
+}
+
+proc print_array_2D_i(arr : [?dom]) {
+
+for i in dom[..,1] {
+  var tmp = arr[i,..];
+  tmp = -1i * tmp;
+  writeln(tmp : real);
   writeln();
 }
 

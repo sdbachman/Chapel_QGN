@@ -1,7 +1,7 @@
 /* Timestepping */
 var t : real = 0;
 var dt : real = 900;
-var Nt : int = 50000;
+var Nt : int = 1;
 var diag_freq : int = 1000;
 var chkpt_freq : int = 1000;
 var out_freq : int = 1000;
@@ -12,8 +12,8 @@ param Ly : real = 1.024e6;
 param Htot : real = 4e3;
 
 /* Grid: Horizontal part must be divisible by 3. */
-param nx : int = 4;
-param ny : int = 8;
+param nx : int = 9;
+param ny : int = 6;
 //param nx : int  = (3*128)/2;
 //param ny : int  = (3*128)/2;
 param nz : int  = 3;
@@ -22,7 +22,7 @@ param nx3p : int = (nx/3)+1;
 param ny3p : int = (ny/3)+1;
 param nx2p : int = (nx/2)+1;
 param ny2p : int = (ny/2)+1;
-param nx3p2 : int = (2*(nx/3)+1);
+param ny3p2 : int = (2*(ny/3)+1);
 
 /* Coriolis coefficients */
 param f0 : real = 1e-4;
@@ -41,7 +41,7 @@ param r0 : real = 5e-8;
    boundary layer thickness. This is the drag felt by the barotropic mode,
    not by the bottom layer. C_d*L_d is a crude measure of the strength of the drag.
    > 1 is strong drag, < 1 is weak drag. */
-param C_d : real = 1e-5;
+param C_d : real = 5e-5;
 
 /* Time step error tolerance; max-norm vorticity */
 param TOL : real = 1e-8;

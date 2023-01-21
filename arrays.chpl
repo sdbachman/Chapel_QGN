@@ -2,7 +2,6 @@ use parameters;
 use domains;
 
 /* FOR TESTING */
-var q_tmp : [D3] real;
 var q_tmp2 : [D3] real;
 var q_hatT : [D3_hatT] complex;
 
@@ -43,3 +42,19 @@ var q_hatT : [D3_hatT] complex;
 
 /* Spectral potential vorticity */
   var q_hat : [D3_hat] complex;
+
+/* Spectral streamfunction */
+  var psi_hat : [D3_hat] complex;
+
+/* Spectral buoyancy */
+  var b_hat : [D3_hat] complex;
+
+/* Spectral velocities */
+  var u_hat : [D3_hat] complex;
+  var v_hat : [D3_hat] complex;
+
+/* Physical space arrays */
+  var q_phys : [D3] real;
+  var u_phys : [D3] real;
+  var v_phys : [D3] real;
+
