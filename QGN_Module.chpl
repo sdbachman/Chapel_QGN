@@ -7,6 +7,7 @@ use LAPACK;
 use ClassicLAPACK;
 
 use LinearAlgebra;
+use Random;
 
 use parameters;
 use domains;
@@ -23,8 +24,9 @@ use compare_fortran;
 
 proc Initialize() {
 
-load_fortran_grid(q);
+//load_fortran_grid(q);
 //load_1layer_test(q);
+create_initial_state(q);
 //print_array_3D(q);
 
 
@@ -265,5 +267,22 @@ proc GetPsi(ref in_arr : [] complex) {
       b_hat(:,:,k) = (2._dp*f0/(H(k)+H(k+1)))*(psi_hat(:,:,k)-psi_hat(:,:,k+1))
     end do
   */
+
+}
+
+
+////////////////////////////////////////////////////////////////
+//   create_initial_state: Fill initial q with random values  //
+////////////////////////////////////////////////////////////////
+
+proc create_initial_state(ref in_arr : [?dom] real) {
+
+  var seed=17;
+  fillRandom(in_arr, seed);
+
+  for k in 1..nz {
+    var tmp = in_arr[k,..,..];
+    in_arr[k,..,..] = 1e-6*(tmp - (+ reduce tmp)/(nx*ny));
+  }
 
 }
