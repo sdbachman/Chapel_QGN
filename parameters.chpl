@@ -1,7 +1,7 @@
 /* Timestepping */
 var t : real = 0;
 var dt : real = 900;
-var Nt : int = 1;
+var Nt : int = 1000;
 var diag_freq : int = 1000;
 var chkpt_freq : int = 1000;
 var out_freq : int = 1000;
@@ -12,10 +12,10 @@ param Ly : real = 1.024e6;
 param Htot : real = 4e3;
 
 /* Grid: Horizontal part must be divisible by 3. */
-param nx : int = 9;
-param ny : int = 6;
-//param nx : int  = (3*128)/2;
-//param ny : int  = (3*128)/2;
+//param nx : int = 9;
+//param ny : int = 6;
+param nx : int  = (3*128)/2;
+param ny : int  = (3*128)/2;
 param nz : int  = 3;
 
 param nx3p : int = (nx/3)+1;
