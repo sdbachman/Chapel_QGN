@@ -147,35 +147,83 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
   var uq_phys : [D3] real;
   var vq_phys : [D3] real;
 
+  var t0, t1, t2, t3, t4, t5, t6, t7, t8 : Timer;
+  var t00, t11, t22 : Timer;
+
+  t0.start();
   /* Get psi_hat, u_hat, v_hat */
     GetPsi(q_in);
+  t0.stop();
 
+  t1.start();
     forall (i,j,k) in D3_hat {
       u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
       v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
     }
+   t1.stop();
 
   /* Get u, v, q */
+    t2.start();
     execute_backward_FFTs(q_in, q_phys);
-    normalize(q_phys, q_phys);
+    normalize(q_phys);
+    t2.stop();
 
+    t3.start();
     execute_backward_FFTs(u_hat, u_phys);
-    normalize(u_phys, u_phys);
+    normalize(u_phys);
+    t3.stop();
 
+    t4.start();
     execute_backward_FFTs(v_hat, v_phys);
-    normalize(v_phys, v_phys);
+    normalize(v_phys);
+    t4.stop();
 
-    uq_phys = u_phys*q_phys;
-    vq_phys = v_phys*q_phys;
+    t5.start();
+    forall (i,j,k) in D3 {
+      uq_phys[i,j,k] = u_phys[i,j,k]*q_phys[i,j,k];
+      vq_phys[i,j,k] = v_phys[i,j,k]*q_phys[i,j,k];
+    }
+    t5.stop();
 
   /* Get uq_hat, vq_hat */
+    t6.start();
     execute_forward_FFTs(uq_phys, uq_hat);
-    execute_forward_FFTs(vq_phys, vq_hat);
+    t6.stop();
 
+   /* var uq_hat2 : [D3_hatT] complex;
+    var t1 : Timer;
+    t1.start();
+    execute_forward_FFTs_2D(uq_phys, uq_hat2);
+    t1.stop();
+    writeln();
+    writeln(t1.elapsed());
+    writeln();
+*/
+
+    t7.start();
+    execute_forward_FFTs(vq_phys, vq_hat);
+    t7.stop();
+
+    t8.start();
   /* Compute jacobian_spec */
+  /* The RHS term is the negative of the Jacobian, so I will put a
+     minus sign here to avoid a needless array copy in the calling function. */
     forall (i,j,k) in D3_hat {
-      jaco_hat[i,j,k] = 1i*(kx[j,k]*uq_hat[i,j,k]+ky[j,k]*vq_hat[i,j,k]);
+      jaco_hat[i,j,k] = -1i*(kx[j,k]*uq_hat[i,j,k]+ky[j,k]*vq_hat[i,j,k]);
     }
+    t8.stop();
+
+    writeln();
+    writeln("GetPsi: ", t0.elapsed());
+    writeln("u_hat: ", t1.elapsed());
+    writeln("Backward FFT: ", t2.elapsed());
+    writeln("Backward FFT: ", t3.elapsed());
+    writeln("Backward FFT: ", t4.elapsed());
+    writeln("uq_phys: ", t5.elapsed());
+    writeln("Forward FFT: ", t6.elapsed());
+    writeln("Forward FFT: ", t7.elapsed());
+    writeln("Jacobian: ", t8.elapsed());
+    writeln();
 
 }
 
@@ -188,11 +236,10 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
 proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
 
   var jaco_hat : [D3_hat] complex;
-  var drag_tmp : [D3_hat] complex;
+  var drag_tmp : [D_hat] complex;
   var drag_hat : [D_hat] complex;
-  var URMS : [D3] real;
-  var Uu_drag : [D3] real;
-  var Uv_drag : [D3] real;
+  var Uu_drag : [D] real;
+  var Uv_drag : [D] real;
 
   var t0 : Timer;
   var t1 : Timer;
@@ -205,8 +252,7 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
   t0.start();
   t1.start();
   /* Advection */
-    Jacobian(q_in,jaco_hat);
-    RHS = -jaco_hat;
+    Jacobian(q_in,RHS);
   t1.stop();
   writeln("Jacobian: ", t1.elapsed());
 
@@ -229,19 +275,21 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
 
   t4.start();
   /* Quadratic drag */
-    URMS = sqrt(u_phys**2+v_phys**2);
-    Uu_drag = URMS*u_phys;
-    Uv_drag = URMS*v_phys;
-
-    execute_forward_FFTs(Uu_drag, drag_tmp);
-    forall (j,k) in D_hat {
-      drag_hat[j,k] = 1i*ky[j,k]*drag_tmp[nz,j,k];
+    forall (j,k) in D {
+      Uu_drag[j,k] = sqrt(u_phys[nz,j,k]**2+v_phys[nz,j,k]**2)*u_phys[nz,j,k];
+      Uv_drag[j,k] = sqrt(u_phys[nz,j,k]**2+v_phys[nz,j,k]**2)*v_phys[nz,j,k];
     }
 
-    execute_forward_FFTs(Uv_drag, drag_tmp);
+    execute_forward_FFTs_single_level(Uu_drag, drag_tmp);
     forall (j,k) in D_hat {
-      drag_hat[j,k] = drag_hat[j,k] - 1i*kx[j,k]*drag_tmp[nz,j,k];
+      drag_hat[j,k] = 1i*ky[j,k]*drag_tmp[j,k];
     }
+
+    execute_forward_FFTs_single_level(Uv_drag, drag_tmp);
+    forall (j,k) in D_hat {
+      drag_hat[j,k] = drag_hat[j,k] - 1i*kx[j,k]*drag_tmp[j,k];
+    }
+
     forall (j,k) in D_hat {
       RHS[nz,j,k] = RHS[nz,j,k] + (C_d*Htot/H[nz])*drag_hat[j,k];
     }
@@ -273,25 +321,21 @@ proc GetPsi(ref in_arr : [] complex) {
 
   q_hat_mode = 0;
   /* Get q_hat_mode and psi_hat_mode */
-    forall (j,k) in D_hat {
-      for i in 1..nz {
+    forall (i,j,k) in D3_hat {
         for ii in 1..nz {
           q_hat_mode[i,j,k] = q_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*in_arr[ii,j,k];
         }
         q_hat_mode[i,j,k] = q_hat_mode[i,j,k]/Htot;
         psi_hat_mode[i,j,k] = q_hat_mode[i,j,k]/(-k2[j,k]+EVals[i]);
         psi_hat_mode[i,1,1] = 0;
-      }
     }
 
   psi_hat = 0;
   /* Get psi_hat */
-    forall (j,k) in D_hat {
-      for i in 1..nz {
+    forall (i,j,k) in D3_hat {
         for ii in 1..nz {
           psi_hat[i,j,k] = psi_hat[i,j,k] + psi_hat_mode[ii,j,k]*Modes[i,ii];
         }
-      }
     }
 
   /* Get b_hat = f0*dpsi/dz

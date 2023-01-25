@@ -29,6 +29,10 @@ var arr_2D_in : [D] real;
 var arr_2D_out : [D_hat] complex;
 var arr_2D_outT : [D_hatT] complex;
 
+var arr_3D_in : [D3] real;
+var arr_3D_out : [D3_hat] complex;
+
+var plan_many : fftw_plan;
 
 proc set_up_forward_FFTs() {
 
@@ -42,6 +46,25 @@ proc set_up_forward_FFTs() {
 
   // Forward 2d (for testing only)
     plan_2df = fftw_plan_dft_r2c_2d(ny : c_int, nx : c_int, c_ptrTo(arr_2D_in), c_ptrTo(arr_2D_outT), FFTW_ESTIMATE);
+
+  // Many
+  /* fftw_plan fftw_plan_many_dft_r2c(int rank, const int *n, int howmany,
+                                 double *in, const int *inembed,
+                                 int istride, int idist, fftw_complex *out,
+                                 const int *onembed, int ostride, int odist,
+                                 unsigned flags); */
+
+    var rank = 2 : c_int;
+    var n = [ny,nx] : c_int;
+    var istride = 1 : c_int;
+    var idist = (nx*ny) : c_int;
+    var ostride = 1 : c_int;
+    var odist = (nx2p * ny) : c_int;
+    plan_many = fftw_plan_many_dft_r2c(rank, c_ptrTo(n), nz : c_int,
+                                 c_ptrTo(arr_3D_in), c_nil,
+                                 istride, idist, c_ptrTo(arr_3D_out),
+                                 c_nil, ostride, odist,
+                                 FFTW_ESTIMATE);
 }
 
 proc set_up_backward_FFTs() {
@@ -85,7 +108,7 @@ proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] com
     var tmp_f1T : [D_hat] complex;
 
   /* First forward FFT */
-    for i in D_ny {
+    forall i in D_ny {
       fftw_execute_dft_r2c(plan_f1, c_ptrTo(in_arr[i,1]), c_ptrTo(tmp_f1[i,1]));
     }
 
@@ -93,7 +116,7 @@ proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] com
     transpose_2D(tmp_f1, tmp_f1T);
 
   /* Second forward FFT */
-    for i in D_nx2p {
+    forall i in D_nx2p {
       fftw_execute_dft(plan_f2, c_ptrTo(tmp_f1T[i,1]), c_ptrTo(out_arr[i,1]));
     }
 
@@ -127,7 +150,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
       var tmp_b1T : [D_hatT] complex;
 
   /* First backward FFT */
-    for i in D_nx2p {
+    forall i in D_nx2p {
       fftw_execute_dft(plan_b1, c_ptrTo(in_arr[i,1]), c_ptrTo(tmp_b1[i,1]));
     }
 
@@ -135,7 +158,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
     transpose_2D(tmp_b1, tmp_b1T);
 
   /* Second backward FFT */
-    for i in D_ny {
+    forall i in D_ny {
       fftw_execute_dft_c2r(plan_b2, c_ptrTo(tmp_b1T[i,1]), c_ptrTo(out_arr[i,1]));
     }
 
@@ -143,7 +166,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
 
 proc transpose_2D(ref in_arr: [?D] complex, ref out_arr: [] complex) {
 
-    for (i,j) in D {
+    forall (i,j) in D {
       out_arr[j,i] = in_arr[i,j];
     }
 }
@@ -155,9 +178,12 @@ proc transpose_3D(ref in_arr: [?D] complex, ref out_arr: [] complex) {
     }
 }
 
-proc normalize(ref in_arr: [] real, ref out_arr: [] real) {
+proc normalize(ref in_arr: [?dom] real) {
 
-    out_arr = in_arr / (nx*ny);
+    var norm = nx*ny;
+    forall (i,j,k) in dom {
+      in_arr[i,j,k] = in_arr[i,j,k] / norm;
+    }
 
 }
 
@@ -176,5 +202,11 @@ proc execute_backward_FFTs_2D(ref in_arr: [] complex, ref out_arr : [] real) {
       fftw_execute_dft_c2r(plan_2db, c_ptrTo(in_arr[i,1,1]), c_ptrTo(out_arr[i,1,1]));
     }
 
+}
+
+proc execute_forward_FFTs_3D(ref in_arr: [] real, ref out_arr : [] complex) {
+
+  /* Forward FFT */
+      fftw_execute_dft_r2c(plan_many, c_ptrTo(in_arr), c_ptrTo(out_arr));
 }
 

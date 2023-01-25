@@ -163,7 +163,7 @@ proc TimeStep() {
       err_hat = be[1]*(N1+L1)+be[3]*(N3+L3)
                +be[4]*(N4+L4)+be[5]*(N5+L5)+be[6]*(N6+L6);
       execute_backward_FFTs(err_hat, err);
-      normalize(err, err);
+      normalize(err);
       err1 = dt*(max reduce (abs(err)));
 
       if (err1 > TOL) {
