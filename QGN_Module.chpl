@@ -17,6 +17,7 @@ use Stratification;
 use Shear;
 
 use compare_fortran;
+use Time;
 
 ////////////////////////////////////////////////////////////////
 //  Initialize: Set up the initial PV field, modes, and FFTs  //
@@ -34,12 +35,12 @@ writeln("---------------------------------------------------------------");
 writeln("dx = ", dx,"                dy = ", dy);
 
 /* Horizontal locations of grid points (physical space) */
-    for j in 1..nx {
-        x[..,j] = -(Lx+dx)/2 + dx*j;
+    forall (i,j) in D {
+        x[i,j] = -(Lx+dx)/2 + dx*j;
     }
 
-    for i in 1..ny {
-        y[i,..] = -(Ly+dy)/2 + dy*i;
+    forall (i,j) in D {
+        y[i,j] = -(Ly+dy)/2 + dy*i;
     }
 
 /* Initialize vertical modes */
@@ -117,13 +118,15 @@ writeln("dx = ", dx,"                dy = ", dy);
 
 proc DeAlias(ref field : [] complex) {
 
-    for j in nx3p..nx2p {
-      field[..,j,..] = 0;
+    forall (i,j,k) in D3_hat_sp1 {
+      field[i,j,k] = 0;
     }
-    for k in ny3p..ny3p2 {
-      field[..,..,k] = 0;
+    forall (i,j,k) in D3_hat_sp2 {
+      field[i,j,k] = 0;
     }
-    field[..,1,1] = 0;
+    forall i in zl {
+      field[i,1,1] = 0;
+    }
 
 }
 
@@ -147,14 +150,10 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
   /* Get psi_hat, u_hat, v_hat */
     GetPsi(q_in);
 
-    for k in 1..nz {
-      u_hat[k,..,..] =-1i*ky*psi_hat[k,..,..];
-      v_hat[k,..,..] = 1i*kx*psi_hat[k,..,..];
+    forall (i,j,k) in D3_hat {
+      u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
+      v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
     }
-    //forall (i,j,k) in D_hat {
-    //  u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
-    //  v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
-    //}
 
   /* Get u, v, q */
     execute_backward_FFTs(q_in, q_phys);
@@ -169,18 +168,13 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
     uq_phys = u_phys*q_phys;
     vq_phys = v_phys*q_phys;
 
-   // q_in matches
-   // u_hat and v_hat match
-   // q_phys matches initial grid when DeAlias is off
-   // v_phys matches with Fortran when DeAlias is on, but u and q don't?
-
   /* Get uq_hat, vq_hat */
     execute_forward_FFTs(uq_phys, uq_hat);
     execute_forward_FFTs(vq_phys, vq_hat);
 
   /* Compute jacobian_spec */
-    for k in 1..nz {
-      jaco_hat[k,..,..] = 1i*(kx*uq_hat[k,..,..]+ky*vq_hat[k,..,..]);
+    forall (i,j,k) in D3_hat {
+      jaco_hat[i,j,k] = 1i*(kx[j,k]*uq_hat[i,j,k]+ky[j,k]*vq_hat[i,j,k]);
     }
 
 }
@@ -200,34 +194,68 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
   var Uu_drag : [D3] real;
   var Uv_drag : [D3] real;
 
+  var t0 : Timer;
+  var t1 : Timer;
+  var t2 : Timer;
+  var t3 : Timer;
+  var t4 : Timer;
+  var t5 : Timer;
+  var t6 : Timer;
+
+  t0.start();
+  t1.start();
   /* Advection */
     Jacobian(q_in,jaco_hat);
     RHS = -jaco_hat;
+  t1.stop();
+  writeln("Jacobian: ", t1.elapsed());
 
+  t2.start();
   /* Mean advection, beta and viscosity */
-    for k in 1..nz {
-      RHS[k,..,..] = RHS[k,..,..] - uBar[k]*1i*kx*q_in[k,..,..]
-                 - (beta + qyBar[k])*v_hat[k,..,..] - A8*(k2**4)*q_in[k,..,..];
+    forall (i,j,k) in D3_hat {
+      RHS[i,j,k] = RHS[i,j,k] - uBar[i]*1i*kx[j,k]*q_in[i,j,k]
+                 - (beta + qyBar[i])*v_hat[i,j,k] - A8*(k2[j,k]**4)*q_in[i,j,k];
     }
+  t2.stop();
+  writeln("adv, beta, visc: ", t2.elapsed());
 
+  t3.start();
   /* Ekman */
-    RHS[nz,..,..] = RHS[nz,..,..] + (r0*Htot/H[nz]) * k2 * psi_hat[nz,..,..];
+    forall (j,k) in D_hat {
+      RHS[nz,j,k] = RHS[nz,j,k] + (r0*Htot/H[nz]) * k2[j,k] * psi_hat[nz,j,k];
+    }
+  t3.stop();
+  writeln("Ekman: ", t3.elapsed());
 
+  t4.start();
   /* Quadratic drag */
     URMS = sqrt(u_phys**2+v_phys**2);
     Uu_drag = URMS*u_phys;
     Uv_drag = URMS*v_phys;
 
     execute_forward_FFTs(Uu_drag, drag_tmp);
-    drag_hat = 1i*ky*drag_tmp[nz,..,..];
+    forall (j,k) in D_hat {
+      drag_hat[j,k] = 1i*ky[j,k]*drag_tmp[nz,j,k];
+    }
 
     execute_forward_FFTs(Uv_drag, drag_tmp);
-    drag_hat = drag_hat - 1i*kx*drag_tmp[nz,..,..];
+    forall (j,k) in D_hat {
+      drag_hat[j,k] = drag_hat[j,k] - 1i*kx[j,k]*drag_tmp[nz,j,k];
+    }
+    forall (j,k) in D_hat {
+      RHS[nz,j,k] = RHS[nz,j,k] + (C_d*Htot/H[nz])*drag_hat[j,k];
+    }
+  t4.stop();
+  writeln("Drag: ", t4.elapsed());
 
-    RHS[nz,..,..] = RHS[nz,..,..] + (C_d*Htot/H[nz])*drag_hat;
-
+  t5.start();
   /* Dealias */
     DeAlias(RHS);
+  t5.stop();
+  writeln("DeAlias: ", t5.elapsed());
+
+  t0.stop();
+  writeln("GetRHS total: ", t0.elapsed());
 
 }
 
@@ -245,20 +273,24 @@ proc GetPsi(ref in_arr : [] complex) {
 
   q_hat_mode = 0;
   /* Get q_hat_mode and psi_hat_mode */
-    for k in 1..nz {
-      for kk in 1..nz {
-        q_hat_mode[k,..,..] = q_hat_mode[k,..,..] + H[kk]*Modes[kk,k]*in_arr[kk,..,..];
+    forall (j,k) in D_hat {
+      for i in 1..nz {
+        for ii in 1..nz {
+          q_hat_mode[i,j,k] = q_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*in_arr[ii,j,k];
+        }
+        q_hat_mode[i,j,k] = q_hat_mode[i,j,k]/Htot;
+        psi_hat_mode[i,j,k] = q_hat_mode[i,j,k]/(-k2[j,k]+EVals[i]);
+        psi_hat_mode[i,1,1] = 0;
       }
-      q_hat_mode[k,..,..] = q_hat_mode[k,..,..]/Htot;
-      psi_hat_mode[k,..,..] = q_hat_mode[k,..,..]/(-k2+EVals[k]);
-      psi_hat_mode[k,1,1] = 0;
     }
 
   psi_hat = 0;
   /* Get psi_hat */
-    for k in 1..nz {
-      for kk in 1..nz {
-        psi_hat[k,..,..] = psi_hat[k,..,..] + psi_hat_mode[kk,..,..]*Modes[k,kk];
+    forall (j,k) in D_hat {
+      for i in 1..nz {
+        for ii in 1..nz {
+          psi_hat[i,j,k] = psi_hat[i,j,k] + psi_hat_mode[ii,j,k]*Modes[i,ii];
+        }
       }
     }
 

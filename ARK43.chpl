@@ -5,6 +5,7 @@ use QGN_Module;
 use FFT_utils;
 
 use compare_fortran;
+use Time;
 
 var N1, N2, N3, N4, N5, N6 : [D3_hat] complex;
 var L1, L2, L3, L4, L5, L6 : [D3_hat] complex;
@@ -87,45 +88,66 @@ proc TimeStep() {
 
   /* First RK stage, t=0 */
     GetRHS(q_hat, N1);
-    for k in 1..nz {
-      L1[k,..,..] = -(A2*k2 + A8*k8)*q_hat[k,..,..];
+    forall (i,j,k) in D3_hat {
+      L1[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_hat[i,j,k];
     }
 
   do {
-    for k in 1..nz {
-      Mq[k,..,..] = 1.0/(1.0 + 0.25*dt*(A2*k2+A8*k8));
+    forall (i,j,k) in D3_hat {
+      Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8*k8[j,k]));
     }
 
-    /* Second RK stage */
-      q_tmp = Mq*(q_hat + dt*(ae[2,1]*N1+ai[2,1]*L1));
+    var t1 : Timer;
+    var t2 : Timer;
+    var t3 : Timer;
+    var t4 : Timer;
 
+    t1.start();
+    /* Second RK stage */
+      t2.start();
+      q_tmp = Mq*(q_hat + dt*(ae[2,1]*N1+ai[2,1]*L1));
+      t2.stop();
+
+      t3.start();
       GetRHS(q_tmp,N2);
-      for k in 1..nz {
-        L2[k,..,..] = -(A2*k2 + A8*k8)*q_tmp[k,..,..];
+      t3.stop();
+
+      t4.start();
+      forall (i,j,k) in D3_hat {
+        L2[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
+      t4.stop();
+    t1.stop();
+
+    writeln();
+    writeln("Total RK stage: ", t1.elapsed());
+    writeln("q_tmp: ", t2.elapsed());
+    writeln("GetRHS: ", t3.elapsed());
+    writeln("L2: ", t4.elapsed());
+    writeln();
 
     /* Third RK stage */
       q_tmp = Mq*(q_hat + dt*(ae[3,1]*N1+ae[3,2]*N2
                              +ai[3,1]*L1+ai[3,2]*L2));
       GetRHS(q_tmp,N3);
-      for k in 1..nz {
-        L3[k,..,..] = -(A2*k2 + A8*k8)*q_tmp[k,..,..];
+      forall (i,j,k) in D3_hat {
+        L3[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Fourth RK stage */
       q_tmp = Mq*(q_hat + dt*(ae[4,1]*N1+ae[4,2]*N2+ae[4,3]*N3
                              +ai[4,1]*L1+ai[4,2]*L2+ai[4,3]*L3));
       GetRHS(q_tmp,N4);
-      for k in 1..nz {
-        L4[k,..,..] = -(A2*k2 + A8*k8)*q_tmp[k,..,..];
+      forall (i,j,k) in D3_hat {
+        L4[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Fifth RK stage */
       q_tmp = Mq*(q_hat+dt*(ae[5,1]*N1+ae[5,2]*N2+ae[5,3]*N3+ae[5,4]*N4
                            +ai[5,1]*L1+ai[5,2]*L2+ai[5,3]*L3+ai[5,4]*L4));
       GetRHS(q_tmp,N5);
-      for k in 1..nz {
-        L5[k,..,..] = -(A2*k2 + A8*k8)*q_tmp[k,..,..];
+      forall (i,j,k) in D3_hat {
+        L5[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Sixth RK stage */
@@ -133,8 +155,8 @@ proc TimeStep() {
                              +ae[6,4]*N4+ae[6,5]*N5+ai[6,1]*L1
                              +ai[6,2]*L2+ai[6,3]*L3+ai[6,4]*L4+ai[6,5]*L5));
       GetRHS(q_tmp,N6);
-      for k in 1..nz {
-        L6[k,..,..] = -(A2*k2 + A8*k8)*q_tmp[k,..,..];
+      forall (i,j,k) in D3_hat {
+        L6[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Error control */
@@ -153,7 +175,9 @@ proc TimeStep() {
         q_hat = q_hat + dt*(b[1]*(N1+L1)+b[3]*(N3+L3)
                            +b[4]*(N4+L4)+b[5]*(N5+L5)
                            +b[6]*(N6+L6));
-        q_hat[..,1,1] = 0;
+        forall i in zl {
+          q_hat[i,1,1] = 0;
+        }
         t = t + dt;
 
         /* Stepsize adjustment PI.3.4, divide by 4 for 4th order method with 3rd embedded */

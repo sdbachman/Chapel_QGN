@@ -35,3 +35,7 @@ var D_zxhat = {1..nz,1..nx2p};
 var D3 = {1..nz,1..ny,1..nx};
 var D3_hat = {1..nz,1..nx2p,1..ny};
 var D3_hatT = {1..nz,1..ny,1..nx2p};
+
+/* Special domains for DeAliasing */
+var D3_hat_sp1 = {1..nz, nx3p..nx2p, 1..ny};
+var D3_hat_sp2 = {1..nz, 1..nx2p, ny3p..ny3p2};

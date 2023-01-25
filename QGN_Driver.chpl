@@ -16,12 +16,12 @@ proc main() {
 
   for i in 1..Nt {
 
-    var t2 : Timer;
-    t2.start();
+    //var t2 : Timer;
+    //t2.start();
 
     TimeStep();
 
-    writeln(t2.elapsed());
+    //writeln(t2.elapsed());
   }
 
   openwriter("timings.txt").writeln(t.elapsed());
