@@ -92,39 +92,49 @@ proc TimeStep() {
       L1[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_hat[i,j,k];
     }
 
+/*
+    var q2 : [D3] real;
+    execute_backward_FFTs(L1, q2);
+    normalize(q2);
+
+//difference("out", q2);
+    print_array_3D(q2);
+*/
+
   do {
     forall (i,j,k) in D3_hat {
       Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8*k8[j,k]));
     }
-
-    var t1 : Timer;
-    var t2 : Timer;
-    var t3 : Timer;
-    var t4 : Timer;
-
-    t1.start();
+ /*
+    var t1 : stopwatch;
+    var t2 : stopwatch;
+    var t3 : stopwatch;
+    var t4 : stopwatch;
+*/
+    //t1.start();
     /* Second RK stage */
-      t2.start();
+     // t2.start();
       q_tmp = Mq*(q_hat + dt*(ae[2,1]*N1+ai[2,1]*L1));
-      t2.stop();
+     // t2.stop();
 
-      t3.start();
+     // t3.start();
       GetRHS(q_tmp,N2);
-      t3.stop();
+    //  t3.stop();
 
-      t4.start();
+     // t4.start();
       forall (i,j,k) in D3_hat {
         L2[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
-      t4.stop();
-    t1.stop();
+      //t4.stop();
+    //t1.stop();
 
-    writeln();
+    /*writeln();
     writeln("Total RK stage: ", t1.elapsed());
     writeln("q_tmp: ", t2.elapsed());
     writeln("GetRHS: ", t3.elapsed());
     writeln("L2: ", t4.elapsed());
     writeln();
+    */
 
     /* Third RK stage */
       q_tmp = Mq*(q_hat + dt*(ae[3,1]*N1+ae[3,2]*N2

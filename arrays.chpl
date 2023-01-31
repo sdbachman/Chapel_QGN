@@ -13,6 +13,9 @@ var q_hatT : [D3_hatT] complex;
   const dx : real = Lx / nx;
   const dy : real = Ly / ny;
 
+/* Vertical grid */
+  var z : [zl] real;
+
 /* Vertical layer depths: H(nz) is the bottom layer; S=f^2/N^2(z) */
   var H : [zl] real;
   var S : [zi] real;

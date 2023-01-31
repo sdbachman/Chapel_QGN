@@ -6,13 +6,21 @@ SERIAL, MULTI-THREADED, SINGLE NODE
 source ~/.chapel_none_mpt
 chpl -lopenblas -lfftw3_threads -lfftw3 -lm -lpthread -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib" test.chpl --fast --set autoInitFFTW_MT
 
-PARALLEL, SINGLE THREADED, SINGLE NODE
+PARALLEL, SINGLE THREADED, MULTI NODE
 source ~/.chapel_pbs-gasnet
 chpl -lopenblas -lfftw3 -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib" test.chpl --fast
 
 PARALLEL, MULTI_THREADED, MULTI NODE
 source ~/.chapel_pbs-gasnet_mpt
 chpl -lopenblas -lfftw3_threads -lfftw3 -lm -lpthread -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib" test.chpl --fast --set autoInitFFTW_MT
+
+TESTING INTEL
+source ~/.chapel_pbs-gasnet_intel
+chpl -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -sisFFTW_MKL -I/glade/u/apps/opt/intel/2020u1/mkl/include/fftw -I/glade/u/apps/opt/intel/2020u1/mkl/include -L/glade/u/apps/opt/intel/2020u1/mkl/lib/intel64 --ldflags="-Wl,-rpath,/glade/u/apps/opt/intel/2020u1/mkl/lib/intel64" test.chpl --fast --set isFFTW_MKL
+
+PARALLEL, SINGLE THREADED, MULTI NODE W/ NETCDF
+source ~/.chapel_pbs-gasnet
+chpl -lopenblas -lfftw3 -lnetcdf -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" test.chpl --fast
 
 
 CHAPEL:

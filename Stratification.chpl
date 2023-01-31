@@ -4,6 +4,8 @@ use arrays;
 /* Even grid spacing */
   H = Htot / nz;
 
+  z = + scan H;
+
 writeln("-------------------------------------------------");
 writeln(" Layer depths H/Htot ");
 writeln(H/Htot);

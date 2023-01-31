@@ -1,8 +1,8 @@
 /* Timestepping */
 var t : real = 0;
 var dt : real = 900;
-var Nt : int = 10;
-var diag_freq : int = 1000;
+var Nt : int = 10000;
+var diag_freq : int = 50;
 var chkpt_freq : int = 1000;
 var out_freq : int = 1000;
 
