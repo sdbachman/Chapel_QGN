@@ -1,16 +1,68 @@
 use parameters;
 use domains;
 use arrays;
+use diag_table;
+use QGN_Module;
+use FFT_utils;
 
 use BlockDist;
 use NetCDF.C_NetCDF;
 
 
-inline proc tuplify(x) {
-  if isTuple(x) then return x; else return (x,);
+proc Diagnostics(i : int) {
+
+  if (Q_DIAG) {
+    if ((i % Q_DIAG_FREQ)==0) {
+      var q_tmp : [D3] real;
+      execute_backward_FFTs(q_hat, q_tmp);
+      normalize(q_tmp);
+      WriteOutput(q_tmp, "q", "seconds-1", i);
+    }
+  }
+
+  if (PSI_DIAG) || (U_DIAG) || (V_DIAG) {
+    if ((i % PSI_DIAG_FREQ)==0) || ((i % U_DIAG_FREQ)==0) || ((i % V_DIAG_FREQ)==0) {
+      GetPsi(q_hat);
+    }
+  }
+
+  if (PSI_DIAG) {
+    if ((i % PSI_DIAG_FREQ)==0) {
+      var psi_tmp : [D3] real;
+      execute_backward_FFTs(psi_hat, psi_tmp);
+      normalize(psi_tmp);
+      WriteOutput(psi_tmp, "psi", "meters2 seconds-1", i);
+    }
+  }
+
+  if (U_DIAG) {
+    if ((i % U_DIAG_FREQ)==0) {
+      forall (i,j,k) in D3_hat {
+        u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
+      }
+      var u_tmp : [D3] real;
+      execute_backward_FFTs(u_hat, u_tmp);
+      normalize(u_tmp);
+      WriteOutput(u_tmp, "u", "meters second-1", i);
+    }
+  }
+
+  if (V_DIAG) {
+    if ((i % V_DIAG_FREQ)==0) {
+      forall (i,j,k) in D3_hat {
+        v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
+      }
+      var v_tmp : [D3] real;
+      execute_backward_FFTs(v_hat, v_tmp);
+      normalize(v_tmp);
+      WriteOutput(v_tmp, "v", "meters second-1", i);
+    }
+  }
+
 }
 
-proc WriteOutput(ref arr_in: [?D] real, t : real) {
+
+proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : int) {
 
   /* IDs for the netCDF file, dimensions, and variables. */
     var ncid, x_dimid, y_dimid, z_dimid, time_dimid : c_int;
@@ -34,17 +86,15 @@ proc WriteOutput(ref arr_in: [?D] real, t : real) {
     var yName = "y";
     var xName = "x";
 
-    var varName = "q";
-
-    var intTime = t : int;
-    var myTime = intTime : string;
+  /* The timestamp for the filename */
+    var currentIter = i : string;
     const maxLen = 10;
-    const zero_len = maxLen - myTime.size;
-    const paddedStr = (zero_len * "0") + myTime;
+    const zero_len = maxLen - currentIter.size;
+    const paddedStr = (zero_len * "0") + currentIter;
 
   /* Create the file. */
     extern proc nc_create(path : c_string, cmode : c_int, ncidp : c_ptr(c_int)) : c_int;
-    nc_create( ("q." + paddedStr + ".nc").c_str(), NC_CLOBBER, c_ptrTo(ncid));
+    nc_create( (varName + "." + paddedStr + ".nc").c_str(), NC_CLOBBER, c_ptrTo(ncid));
 
   /* Define the dimensions. The record dimension is defined to have
      unlimited length - it can grow as needed. In this example it is
@@ -84,8 +134,7 @@ proc WriteOutput(ref arr_in: [?D] real, t : real) {
     nc_def_var(ncid, varName.c_str(), NC_DOUBLE, ndims : c_int, c_ptrTo(dimids[0]), c_ptrTo(varid));
 
   /* Assign units attributes to the netCDF variables. */
-    att_text = "seconds-1";
-    nc_put_att_text(ncid, varid, "units".c_str(), att_text.numBytes : c_size_t, att_text.c_str());
+    nc_put_att_text(ncid, varid, "units".c_str(), units.numBytes : c_size_t, units.c_str());
 
   /* End define mode. */
     nc_enddef(ncid);
@@ -120,4 +169,8 @@ proc WriteOutput(ref arr_in: [?D] real, t : real) {
 
     nc_close(ncid);
 
+}
+
+inline proc tuplify(x) {
+  if isTuple(x) then return x; else return (x,);
 }

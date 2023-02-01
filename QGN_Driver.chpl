@@ -3,10 +3,10 @@ use domains;
 use arrays;
 use QGN_Module;
 use ARK43;
+use IO_Module;
+
 use compare_fortran;
 use FFT_utils;
-
-use IO_Module;
 use Time;
 use IO;
 
@@ -21,14 +21,7 @@ proc main() {
 
     TimeStep();
     DeAlias(q_hat);
-
-    /* Write diagnostics */
-      if ((i % diag_freq)==0) {
-        var q2 : [D3] real;
-        execute_backward_FFTs(q_hat, q2);
-        normalize(q2);
-        WriteOutput(q2, i);
-      }
+    Diagnostics(i);
 
   }
 
