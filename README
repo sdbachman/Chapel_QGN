@@ -20,7 +20,7 @@ chpl -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -sisFFTW_MKL -I/
 
 PARALLEL, SINGLE THREADED, MULTI NODE W/ NETCDF
 source ~/.chapel_pbs-gasnet
-chpl -lopenblas -lfftw3 -lnetcdf -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" test.chpl --fast
+chpl -lopenblas -lfftw3 -lnetcdf -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" QGN_Driver.chpl --fast
 
 
 CHAPEL:

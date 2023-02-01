@@ -1,10 +1,6 @@
 use parameters;
 use domains;
 
-/* FOR TESTING */
-var q_tmp2 : [D3] real;
-var q_hatT : [D3_hatT] complex;
-
 /* Location of horizontal grid */
   var x : [D] real;
   var y : [D] real;
