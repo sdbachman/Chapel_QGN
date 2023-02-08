@@ -13,9 +13,17 @@ param Ly : real = 3.84e5;
 param Htot : real = 5e3;
 
 /* Grid: Horizontal part must be divisible by 3. */
-param nx : int  = (3*256)/2;
-param ny : int  = (3*256)/2;
-param nz : int  = 3;  // 50
+param nx : int  = (3*8)/2;
+param ny : int  = (3*8)/2;
+param nz : int  = 8;  // 50
+
+/*
+param nx3p : int = (nx/3);
+param ny3p : int = (ny/3);
+param nx2p : int = (nx/2);
+param ny2p : int = (ny/2);
+param ny3p2 : int = (2*(ny/3));
+*/
 
 param nx3p : int = (nx/3)+1;
 param ny3p : int = (ny/3)+1;

@@ -52,7 +52,7 @@ proc execute_forward_FFTs(ref in_arr: [] real, ref out_arr : [] complex) {
 
   /* First forward FFT */
     forall (i,j) in D_zy {
-      fftw_execute_dft_r2c(plan_f1, c_ptrTo(in_arr[i,j,1]), c_ptrTo(tmp_f1[i,j,1]));
+      fftw_execute_dft_r2c(plan_f1, c_ptrTo(in_arr[i,j,0]), c_ptrTo(tmp_f1[i,j,0]));
     }
 
   /* Transpose */
@@ -60,7 +60,7 @@ proc execute_forward_FFTs(ref in_arr: [] real, ref out_arr : [] complex) {
 
   /* Second forward FFT */
     forall (i,j) in D_zxhat {
-      fftw_execute_dft(plan_f2, c_ptrTo(tmp_f1T[i,j,1]), c_ptrTo(out_arr[i,j,1]));
+      fftw_execute_dft(plan_f2, c_ptrTo(tmp_f1T[i,j,0]), c_ptrTo(out_arr[i,j,0]));
     }
 
 }
@@ -73,7 +73,7 @@ proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] com
 
   /* First forward FFT */
     forall i in D_ny {
-      fftw_execute_dft_r2c(plan_f1, c_ptrTo(in_arr[i,1]), c_ptrTo(tmp_f1[i,1]));
+      fftw_execute_dft_r2c(plan_f1, c_ptrTo(in_arr[i,0]), c_ptrTo(tmp_f1[i,0]));
     }
 
   /* Transpose */
@@ -81,7 +81,7 @@ proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] com
 
   /* Second forward FFT */
     forall i in D_nx2p {
-      fftw_execute_dft(plan_f2, c_ptrTo(tmp_f1T[i,1]), c_ptrTo(out_arr[i,1]));
+      fftw_execute_dft(plan_f2, c_ptrTo(tmp_f1T[i,0]), c_ptrTo(out_arr[i,0]));
     }
 
 }
@@ -94,7 +94,7 @@ proc execute_backward_FFTs(ref in_arr: [] complex, ref out_arr : [] real) {
 
   /* First backward FFT */
     forall (i,j) in D_zxhat {
-      fftw_execute_dft(plan_b1, c_ptrTo(in_arr[i,j,1]), c_ptrTo(tmp_b1[i,j,1]));
+      fftw_execute_dft(plan_b1, c_ptrTo(in_arr[i,j,0]), c_ptrTo(tmp_b1[i,j,0]));
     }
 
   /* Transpose */
@@ -102,7 +102,7 @@ proc execute_backward_FFTs(ref in_arr: [] complex, ref out_arr : [] real) {
 
   /* Second backward FFT */
     forall (i,j) in D_zy {
-      fftw_execute_dft_c2r(plan_b2, c_ptrTo(tmp_b1T[i,j,1]), c_ptrTo(out_arr[i,j,1]));
+      fftw_execute_dft_c2r(plan_b2, c_ptrTo(tmp_b1T[i,j,0]), c_ptrTo(out_arr[i,j,0]));
     }
 
 }
@@ -115,7 +115,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
 
   /* First backward FFT */
     forall i in D_nx2p {
-      fftw_execute_dft(plan_b1, c_ptrTo(in_arr[i,1]), c_ptrTo(tmp_b1[i,1]));
+      fftw_execute_dft(plan_b1, c_ptrTo(in_arr[i,0]), c_ptrTo(tmp_b1[i,0]));
     }
 
   /* Transpose */
@@ -123,7 +123,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
 
   /* Second backward FFT */
     forall i in D_ny {
-      fftw_execute_dft_c2r(plan_b2, c_ptrTo(tmp_b1T[i,1]), c_ptrTo(out_arr[i,1]));
+      fftw_execute_dft_c2r(plan_b2, c_ptrTo(tmp_b1T[i,0]), c_ptrTo(out_arr[i,0]));
     }
 
 }

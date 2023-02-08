@@ -17,6 +17,7 @@ proc main() {
 
   Initialize();
 
+/*
   for i in (Nt_start+1)..(Nt_start+Nt) {
 
     TimeStep();
@@ -26,5 +27,5 @@ proc main() {
   }
 
   openwriter("timings.txt").writeln(t0.elapsed());
-
+*/
 }

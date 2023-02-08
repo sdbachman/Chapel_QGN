@@ -26,12 +26,16 @@ use Time;
 
 proc Initialize() {
 
+/*
 if restart {
   read_initial_state(q);
 }
 else {
   create_initial_state(q);
 }
+*/
+load_fortran_grid("test_grid", q);
+
 //print_array_3D(q);
 
 writeln("---------------------------------------------------------------");
@@ -39,16 +43,17 @@ writeln("dx = ", dx,"                dy = ", dy);
 
 /* Horizontal locations of grid points (physical space) */
     forall (i,j) in D {
-        x[i,j] = -(Lx+dx)/2 + dx*j;
+        x[i,j] = -(Lx+dx)/2 + dx*(j+1);
     }
 
     forall (i,j) in D {
-        y[i,j] = -(Ly+dy)/2 + dy*i;
+        y[i,j] = -(Ly+dy)/2 + dy*(i+1);
     }
 
 /* Initialize vertical modes */
 
     /* Set elements of L ([Del+L]psi=q) */
+    /*
       L[1,2] = 2*S[1]/(H[1]*(H[1]+H[2]));
       L[1,1] =-L[1,2];
       if (nz > 2) {
@@ -60,6 +65,18 @@ writeln("dx = ", dx,"                dy = ", dy);
       }
       L[nz,nz-1] = 2*S[nz-1]/(H[nz]*(H[nz]+H[nz-1]));
       L[nz,nz]   = -L[nz,nz-1];
+    */
+      L[0,1] = 2*S[0]/(H[0]*(H[0]+H[1]));
+      L[0,0] =-L[0,1];
+      if (nz > 2) {
+        for k in 1..(nz-2) {
+          L[k,k-1] = 2*S[k-1]/(H[k]*(H[k]+H[k-1]));
+          L[k,k+1] = 2*S[k]/(H[k]*(H[k]+H[k+1]));
+          L[k,k]   =-(L[k,k-1]+L[k,k+1]);
+        }
+      }
+      L[nz-1,nz-2] = 2*S[nz-2]/(H[nz-1]*(H[nz-1]+H[nz-2]));
+      L[nz-1,nz-1]   = -L[nz-1,nz-2];
 
     /* At this point need to set up mean zonal velocity and associated mean PV
     gradient before L gets over-written. */
@@ -67,11 +84,11 @@ writeln("dx = ", dx,"                dy = ", dy);
       qyBar = dot(L,tmp);
 
     /* Eigenvalue decomposition; DGEEV over-writes L */
-      LAPACKE_dgeev(lapack_memory_order.row_major,'N','V',nz : c_int, L, nz : c_int,
+      LAPACKE_dgeev(lapack_memory_order.column_major,'N','V',nz : c_int, L, nz : c_int,
                     EVals, EValsI, ModesL, nz : c_int, Modes,nz : c_int);
 
     /* Now normalize so that depth average of Modes[..,k]**2 is 1. */
-      for k in 1..nz {
+      for k in 0..#nz {
         tmp = + reduce ((H/Htot)*Modes[..,k]**2);
         Modes[..,k] = Modes[..,k] / sqrt(tmp);
       }
@@ -85,14 +102,14 @@ writeln("dx = ", dx,"                dy = ", dy);
        transposed domain, so kx will be constant in the first dimension and ky
        will be constant in the second dimension. */
 
-      for i in 1..nx2p {
-        kx[i,..] = (2*pi/Lx) * (i-1);
+      for i in 0..#nx2p {
+        kx[i,..] = (2*pi/Lx) * i;
       }
-      for j in 1..ny2p {
-        ky[..,j] = (2*pi/Ly) * (j-1);
+      for j in 0..#ny2p {
+        ky[..,j] = (2*pi/Ly) * j;
       }
-      for j in (ny2p+1)..ny {
-        ky[..,j] = (2*pi/Ly) * (j-ny-1);
+      for j in ny2p..(ny-1) {
+        ky[..,j] = (2*pi/Ly) * (j-ny);
       }
 
       k2 = kx**2+ky**2;
@@ -128,7 +145,7 @@ proc DeAlias(ref field : [] complex) {
       field[i,j,k] = 0;
     }
     forall i in zl {
-      field[i,1,1] = 0;
+      field[i,0,0] = 0;
     }
 
 }

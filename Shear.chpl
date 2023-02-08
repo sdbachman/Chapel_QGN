@@ -1,6 +1,7 @@
 use parameters;
 use arrays;
 
+/*
 var UBarBC : [1..50] real;
 var UBarOC : [1..50] real;
 
@@ -22,18 +23,19 @@ var total_amp = 5.0;
 var bc_amp = 0.1;
 var oc_amp = 0.5;
 uBar = total_amp * ((bc_amp)*UBarBC + (oc_amp)*UBarOC);
+*/
 
-/*
+
 var tmp : real;
 
 /* Set mean shear */
-  uBar[1] = 0.1*cos(pi*H[1]/(2*Htot));
+  uBar[0] = 0.1*cos(pi*H[0]/(2*Htot));
 
-  for k in 2..nz {
-    tmp = + reduce H[1..k-1];
+  for k in 1..(nz-1) {
+    tmp = + reduce H[0..k-2];
     uBar[k] = 0.1*cos(pi*(tmp + H[k]/2)/Htot);
   }
 
   tmp = + reduce (H*uBar);
   uBar = uBar - tmp/Htot;
-*/
+
