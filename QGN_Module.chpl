@@ -15,6 +15,7 @@ use arrays;
 use FFT_utils;
 use Stratification;
 use Shear;
+use IO_Module;
 
 use compare_fortran;
 use Time;
@@ -25,7 +26,12 @@ use Time;
 
 proc Initialize() {
 
-create_initial_state(q);
+if restart {
+  read_initial_state(q);
+}
+else {
+  create_initial_state(q);
+}
 //print_array_3D(q);
 
 writeln("---------------------------------------------------------------");

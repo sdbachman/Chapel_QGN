@@ -1,19 +1,21 @@
+/* Restart? */
+config const restart : bool = false;
+
 /* Timestepping */
+var Nt_start : int = 0;
 var t : real = 0;
 var dt : real = 900;
-var Nt : int = 500;
+config const Nt : int = 1000;
 
 /* Domain, meters */
-param Lx : real = 1.024e6;
-param Ly : real = 1.024e6;
-param Htot : real = 4e3;
+param Lx : real = 3.84e5;
+param Ly : real = 3.84e5;
+param Htot : real = 5e3;
 
 /* Grid: Horizontal part must be divisible by 3. */
-//param nx : int = 9;
-//param ny : int = 6;
-param nx : int  = (3*128)/2;
-param ny : int  = (3*128)/2;
-param nz : int  = 3;
+param nx : int  = (3*256)/2;
+param ny : int  = (3*256)/2;
+param nz : int  = 3;  // 50
 
 param nx3p : int = (nx/3)+1;
 param ny3p : int = (ny/3)+1;

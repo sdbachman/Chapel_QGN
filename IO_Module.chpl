@@ -5,6 +5,7 @@ use diag_table;
 use QGN_Module;
 use FFT_utils;
 
+use FileSystem;
 use BlockDist;
 use NetCDF.C_NetCDF;
 
@@ -173,4 +174,141 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
 
 inline proc tuplify(x) {
   if isTuple(x) then return x; else return (x,);
+}
+
+proc read_initial_state(ref q_in : [] real) {
+
+  var input_files = glob("q.0*");
+
+  var filename = input_files.last;
+  writeln("Reading restart from file ", filename, ".");
+  var varName = "q";
+
+  var ncid : c_int;
+  var varid : c_int;
+  var ndims : c_int = 4;
+  var dimid: c_int;
+
+  // Open the file
+  // (1)  int nc_open(const char* path, int mode,     int* ncidp)
+  extern proc nc_open(path : c_string, mode : c_int, ncidp : c_ptr(c_int)) : c_int;
+  nc_open(filename.c_str(), NC_NOWRITE, c_ptrTo(ncid));
+
+  // Get the variable ID
+  //
+  //      int nc_inq_varid(int ncid,    const char* name,      int* varidp)
+  extern proc nc_inq_varid(ncid: c_int, varName: c_string, varid: c_ptr(c_int));
+  nc_inq_varid(ncid, varName.c_str(), c_ptrTo(varid));
+
+  var dimids : [0..#ndims] c_int;
+
+  // Get the IDs of each dimension
+  //
+  //      int nc_inq_vardimid(int ncid,     int varid,     int* dimidsp)
+  extern proc nc_inq_vardimid(ncid : c_int, varid : c_int, dimidsp : c_ptr(c_int)) : c_int;
+
+  nc_inq_vardimid(ncid, varid, c_ptrTo(dimids));
+
+  var dimlens : [0..#(ndims-1)] c_size_t;
+
+  // Get the size of each dimension
+  //
+  //      int nc_inq_dimlen(int ncid,     int dimid,     size_t* lenp)
+  extern proc nc_inq_dimlen(ncid : c_int, dimid : c_int, lenp : c_ptr(c_size_t)) : c_int;
+  for i in 0..#(ndims-1) do {
+    nc_inq_dimlen(ncid, dimids[i+1], c_ptrTo(dimlens[i]));
+  }
+
+// Create the array to hold the data
+//for param p in 1..10 {
+//  if ndims == p {
+  param p = 3;
+  var dom_in = CreateDomain(p, dimlens);
+  q_in = DistributedRead(filename, varid, dom_in);
+//  }
+//}
+
+
+/* Get the time and timestep from the restart file */
+  // Get the variable ID
+  //
+  //      int nc_inq_varid(int ncid,    const char* name,      int* varidp)
+  nc_inq_varid(ncid, "time".c_str(), c_ptrTo(varid));
+
+  var start_c : c_size_t = 0;
+  var count_c : c_size_t = 1;
+  //extern proc nc_get_vara_double(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(64))) : c_int;
+  // int nc_get_var1_double(int ncid, int varid, const size_t* indexp, double* ip)
+  //nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(t));
+  extern proc nc_get_var1_double(ncid : c_int, varid : c_int, indexp : c_ptr(c_size_t), ip : c_ptr(real(64)));
+  nc_get_var1_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(t));
+  //var current_time = t;
+  writeln("Restart time is ", t, ".");
+
+  var fn_split = filename.split(".");
+  Nt_start = (fn_split[1] : int);
+  writeln("Restart timestep is ", Nt_start, ".");
+
+}
+
+
+proc DistributedRead(const filename, varid, dom_in) {
+
+  const D = dom_in dmapped Block (dom_in);
+  var dist_array : [D] real(64);
+
+  coforall loc in Locales do on loc {
+    writeln("Local subdomain on Locale ", here.id, ": \n", D.localSubdomain());
+
+    /* Some external procedure declarations */
+      extern proc nc_get_vara_double(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(64))) : c_int;
+
+    /* Determine where to start reading file, and how many elements to read */
+      // Start specifies a hyperslab.  It expects an array of dimension sizes
+      var start = tuplify(D.localSubdomain().first);
+      // Count specifies a hyperslab.  It expects an array of dimension sizes
+      var count = tuplify(D.localSubdomain().shape);
+
+    /*
+    /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
+      var start_c = [i in 0..#start.size] start[i] : c_size_t;
+      var count_c = [i in 0..#count.size] count[i] : c_size_t;
+    */
+
+  /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
+  /* NOTE: Subtracting 1 to account for the fact that the domains start at 1 (we need
+     them to start at 0 to write correctly here) */
+    var start_c : [0..start.size] c_size_t;
+    var count_c : [0..count.size] c_size_t;
+    start_c[0] = 0 : c_size_t;
+    count_c[0] = 1 : c_size_t;
+    for i in 1..start.size {
+      start_c[i] = (start[i-1]-1) : c_size_t;
+      count_c[i] = count[i-1] : c_size_t;
+    }
+
+      var ncid : c_int;
+      nc_open(filename.c_str(), NC_NOWRITE, ncid);
+
+      writeln("URL on Locale ", here.id, ": ", filename);
+
+      nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(dist_array[start]));
+
+      nc_close(ncid);
+  }
+      //var D_sum = + reduce dist_array;
+      //writeln("Sum is ", D_sum);
+      //writeln("On locale ", here.id, " sum finished in ", t.elapsed(), " seconds.");
+
+  writeln(dist_array);
+
+  return dist_array;
+
+}
+
+proc CreateDomain(param numDims, indicesArr) {
+  var indices: numDims*range;
+  for param i in 0..<numDims do
+    indices[i] = 0..#indicesArr[i];
+  return {(...indices)};
 }
