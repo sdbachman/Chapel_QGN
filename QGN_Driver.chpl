@@ -17,15 +17,14 @@ proc main() {
 
   Initialize();
 
-/*
   for i in (Nt_start+1)..(Nt_start+Nt) {
 
     TimeStep();
     DeAlias(q_hat);
+
     Diagnostics(i);
 
   }
 
   openwriter("timings.txt").writeln(t0.elapsed());
-*/
 }

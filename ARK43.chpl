@@ -92,6 +92,10 @@ proc TimeStep() {
       L1[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_hat[i,j,k];
     }
 
+   //difference3D_hat("L1", L1);
+   //print_array_3D(L1);
+   //exit();
+
   do {
     forall (i,j,k) in D3_hat {
       Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8*k8[j,k]));

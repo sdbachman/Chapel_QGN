@@ -98,41 +98,6 @@ for k in 0..#nz {
   r.close();
 }
 
-/*
-var f = open("../" + fort_file + "1.dat", iomode.r);
-var r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[0,j,i] = tmp;
-  }
-}
-r.close();
-
-f = open("../" + fort_file + "2.dat", iomode.r);
-r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[1,j,i] = tmp;
-  }
-}
-r.close();
-
-f = open("../" + fort_file + "3.dat", iomode.r);
-r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[2,j,i] = tmp;
-  }
-}
-r.close();
-*/
-
 var diff = chapel_arr - tmp_arr;
 print_array_3D(diff);
 }
@@ -155,43 +120,6 @@ for k in 0..#nz {
   r.close();
 }
 
-/*
-arr = tmp_arr;
-
-var f = open("../" + fort_file + "1.dat", iomode.r);
-var r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx2p {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[0,i,j] = tmp;
-  }
-}
-r.close();
-
-f = open("../" + fort_file + "2.dat", iomode.r);
-r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx2p {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[1,i,j] = tmp;
-  }
-}
-r.close();
-
-f = open("../" + fort_file + "3.dat", iomode.r);
-r = f.reader(kind=ionative);
-for j in 0..#ny {
-  for i in 0..#nx2p {
-    var tmp : real;
-    r.readBinary(tmp);
-    tmp_arr[2,i,j] = tmp;
-  }
-}
-r.close();
-*/
-
 var diff = (chapel_arr : real) - tmp_arr;
 print_array_3D(diff);
 }
@@ -213,10 +141,6 @@ for j in 0..#ny {
 
 var diff = chapel_arr - tmp_arr;
 print_array_2D(diff);
-
-//print_array_2D(tmp_arr);
-//print_array_2D(chapel_arr);
-
 }
 
 
@@ -236,16 +160,12 @@ for j in 0..#ny {
 
 var diff = chapel_arr - tmp_arr;
 print_array_2D(diff);
-
-//print_array_2D(tmp_arr);
-//print_array_2D(chapel_arr);
-
 }
 
 
 proc difference_nz(fort_file : string, chapel_arr : [?dom]) {
 
-var tmp_arr : [D] real;
+var tmp_arr : [zl2] real;
 
 var f = open("../" + fort_file, iomode.r);
 var r = f.reader(kind=ionative);
@@ -259,6 +179,4 @@ for j in 0..#nz {
 
 var diff = chapel_arr - tmp_arr;
 print_array_2D(diff);
-
-
 }

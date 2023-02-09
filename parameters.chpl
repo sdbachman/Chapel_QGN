@@ -5,7 +5,7 @@ config const restart : bool = false;
 var Nt_start : int = 0;
 var t : real = 0;
 var dt : real = 900;
-config const Nt : int = 1000;
+config const Nt : int = 51;
 
 /* Domain, meters */
 param Lx : real = 3.84e5;
@@ -17,19 +17,12 @@ param nx : int  = (3*8)/2;
 param ny : int  = (3*8)/2;
 param nz : int  = 8;  // 50
 
-/*
-param nx3p : int = (nx/3);
-param ny3p : int = (ny/3);
-param nx2p : int = (nx/2);
-param ny2p : int = (ny/2);
-param ny3p2 : int = (2*(ny/3));
-*/
-
 param nx3p : int = (nx/3)+1;
 param ny3p : int = (ny/3)+1;
 param nx2p : int = (nx/2)+1;
 param ny2p : int = (ny/2)+1;
 param ny3p2 : int = (2*(ny/3)+1);
+param nz1m : int = nz-1;
 
 /* Coriolis coefficients */
 param f0 : real = 1e-4;

@@ -84,7 +84,7 @@ writeln("dx = ", dx,"                dy = ", dy);
       qyBar = dot(L,tmp);
 
     /* Eigenvalue decomposition; DGEEV over-writes L */
-      LAPACKE_dgeev(lapack_memory_order.column_major,'N','V',nz : c_int, L, nz : c_int,
+      LAPACKE_dgeev(lapack_memory_order.row_major,'N','V',nz : c_int, L, nz : c_int,
                     EVals, EValsI, ModesL, nz : c_int, Modes,nz : c_int);
 
     /* Now normalize so that depth average of Modes[..,k]**2 is 1. */
@@ -170,6 +170,9 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
   /* Get psi_hat, u_hat, v_hat */
     GetPsi(q_in);
 
+    //difference3D_hat("psi_hat", psi_hat);
+    //print_array_3D(psi_hat);
+
     forall (i,j,k) in D3_hat {
       u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
       v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
@@ -222,19 +225,19 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
 
   /* Mean advection, beta and viscosity */
     forall (i,j,k) in D3_hat {
-      RHS[i,j,k] = RHS[i,j,k] - uBar[i]*1i*kx[j,k]*q_in[i,j,k]
+      RHS[i,j,k] = RHS[i,j,k] - 0*uBar[i]*1i*kx[j,k]*q_in[i,j,k]
                  - (beta + qyBar[i])*v_hat[i,j,k] - A8*(k2[j,k]**4)*q_in[i,j,k];
     }
 
   /* Ekman */
     forall (j,k) in D_hat {
-      RHS[nz,j,k] = RHS[nz,j,k] + (r0*Htot/H[nz]) * k2[j,k] * psi_hat[nz,j,k];
+      RHS[nz1m,j,k] = RHS[nz1m,j,k] + (r0*Htot/H[nz1m]) * k2[j,k] * psi_hat[nz1m,j,k];
     }
 
   /* Quadratic drag */
     forall (j,k) in D {
-      Uu_drag[j,k] = sqrt(u_phys[nz,j,k]**2+v_phys[nz,j,k]**2)*u_phys[nz,j,k];
-      Uv_drag[j,k] = sqrt(u_phys[nz,j,k]**2+v_phys[nz,j,k]**2)*v_phys[nz,j,k];
+      Uu_drag[j,k] = sqrt(u_phys[nz1m,j,k]**2+v_phys[nz1m,j,k]**2)*u_phys[nz1m,j,k];
+      Uv_drag[j,k] = sqrt(u_phys[nz1m,j,k]**2+v_phys[nz1m,j,k]**2)*v_phys[nz1m,j,k];
     }
 
     execute_forward_FFTs_single_level(Uu_drag, drag_tmp);
@@ -248,7 +251,7 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
     }
 
     forall (j,k) in D_hat {
-      RHS[nz,j,k] = RHS[nz,j,k] + (C_d*Htot/H[nz])*drag_hat[j,k];
+      RHS[nz1m,j,k] = RHS[nz1m,j,k] + (C_d*Htot/H[nz1m])*drag_hat[j,k];
     }
 
   /* Dealias */
@@ -271,18 +274,18 @@ proc GetPsi(ref in_arr : [] complex) {
   q_hat_mode = 0;
   /* Get q_hat_mode and psi_hat_mode */
     forall (i,j,k) in D3_hat {
-        for ii in 1..nz {
+        for ii in 0..#nz {
           q_hat_mode[i,j,k] = q_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*in_arr[ii,j,k];
         }
         q_hat_mode[i,j,k] = q_hat_mode[i,j,k]/Htot;
         psi_hat_mode[i,j,k] = q_hat_mode[i,j,k]/(-k2[j,k]+EVals[i]);
-        psi_hat_mode[i,1,1] = 0;
+        psi_hat_mode[i,0,0] = 0;
     }
 
   psi_hat = 0;
   /* Get psi_hat */
     forall (i,j,k) in D3_hat {
-        for ii in 1..nz {
+        for ii in 0..#nz {
           psi_hat[i,j,k] = psi_hat[i,j,k] + psi_hat_mode[ii,j,k]*Modes[i,ii];
         }
     }
