@@ -31,12 +31,9 @@ var tmp : real;
 /* Set mean shear */
   uBar[0] = 0.1*cos(pi*H[0]/(2*Htot));
 
-  writeln(uBar[0]);
-
   for k in 1..(nz-1) {
     tmp = + reduce H[0..(k-1)];
     uBar[k] = 0.1*cos(pi*(tmp + H[k]/2)/Htot);
-    writeln(uBar[k]);
   }
 
   tmp = + reduce (H*uBar);

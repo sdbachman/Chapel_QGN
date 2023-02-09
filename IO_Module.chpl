@@ -79,8 +79,8 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
 
     var current_time = t;
     var zo = z;
-    var yo = y[..,1];
-    var xo = x[1,..];
+    var yo = y[..,0];
+    var xo = x[0,..];
 
     var timeName = "time";
     var zName = "z";
@@ -147,21 +147,20 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
     nc_put_var_double(ncid, y_varid, c_ptrTo(yo[0]));
     nc_put_var_double(ncid, x_varid, c_ptrTo(xo[0]));
 
-  /* Determine where to start reading file, and how many elements to read */
-  // Start specifies a hyperslab.  It expects an array of dimension sizes
-    var start = tuplify(D.localSubdomain().first);
-  // Count specifies a hyperslab.  It expects an array of dimension sizes
-    var count = tuplify(D.localSubdomain().shape);
-
   /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
-  /* NOTE: Subtracting 1 to account for the fact that the domains start at 1 (we need
-     them to start at 0 to write correctly here) */
+  /* Determine where to start reading file, and how many elements to read */
+    // Start specifies a hyperslab.  It expects an array of dimension sizes
+      var start = tuplify(D.localSubdomain().first);
+    // Count specifies a hyperslab.  It expects an array of dimension sizes
+      var count = tuplify(D.localSubdomain().shape);
+
+  /* Adding an extra first element to account for the "time" dimension. */
     var start_c : [0..start.size] c_size_t;
     var count_c : [0..count.size] c_size_t;
     start_c[0] = 0 : c_size_t;
     count_c[0] = 1 : c_size_t;
     for i in 1..start.size {
-      start_c[i] = (start[i-1]-1) : c_size_t;
+      start_c[i] = start[i-1] : c_size_t;
       count_c[i] = count[i-1] : c_size_t;
     }
 
@@ -219,30 +218,17 @@ proc read_initial_state(ref q_in : [] real) {
     nc_inq_dimlen(ncid, dimids[i+1], c_ptrTo(dimlens[i]));
   }
 
-// Create the array to hold the data
-//for param p in 1..10 {
-//  if ndims == p {
   param p = 3;
   var dom_in = CreateDomain(p, dimlens);
   q_in = DistributedRead(filename, varid, dom_in);
-//  }
-//}
-
 
 /* Get the time and timestep from the restart file */
-  // Get the variable ID
-  //
-  //      int nc_inq_varid(int ncid,    const char* name,      int* varidp)
   nc_inq_varid(ncid, "time".c_str(), c_ptrTo(varid));
 
   var start_c : c_size_t = 0;
   var count_c : c_size_t = 1;
-  //extern proc nc_get_vara_double(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(64))) : c_int;
-  // int nc_get_var1_double(int ncid, int varid, const size_t* indexp, double* ip)
-  //nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(t));
   extern proc nc_get_var1_double(ncid : c_int, varid : c_int, indexp : c_ptr(c_size_t), ip : c_ptr(real(64)));
   nc_get_var1_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(t));
-  //var current_time = t;
   writeln("Restart time is ", t, ".");
 
   var fn_split = filename.split(".");
@@ -269,23 +255,15 @@ proc DistributedRead(const filename, varid, dom_in) {
       // Count specifies a hyperslab.  It expects an array of dimension sizes
       var count = tuplify(D.localSubdomain().shape);
 
-    /*
     /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
-      var start_c = [i in 0..#start.size] start[i] : c_size_t;
-      var count_c = [i in 0..#count.size] count[i] : c_size_t;
-    */
-
-  /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
-  /* NOTE: Subtracting 1 to account for the fact that the domains start at 1 (we need
-     them to start at 0 to write correctly here) */
-    var start_c : [0..start.size] c_size_t;
-    var count_c : [0..count.size] c_size_t;
-    start_c[0] = 0 : c_size_t;
-    count_c[0] = 1 : c_size_t;
-    for i in 1..start.size {
-      start_c[i] = (start[i-1]-1) : c_size_t;
-      count_c[i] = count[i-1] : c_size_t;
-    }
+      var start_c : [0..start.size] c_size_t;
+      var count_c : [0..count.size] c_size_t;
+      start_c[0] = 0 : c_size_t;
+      count_c[0] = 1 : c_size_t;
+      for i in 1..start.size {
+        start_c[i] = start[i-1] : c_size_t;
+        count_c[i] = count[i-1] : c_size_t;
+      }
 
       var ncid : c_int;
       nc_open(filename.c_str(), NC_NOWRITE, ncid);
@@ -296,11 +274,6 @@ proc DistributedRead(const filename, varid, dom_in) {
 
       nc_close(ncid);
   }
-      //var D_sum = + reduce dist_array;
-      //writeln("Sum is ", D_sum);
-      //writeln("On locale ", here.id, " sum finished in ", t.elapsed(), " seconds.");
-
-  writeln(dist_array);
 
   return dist_array;
 

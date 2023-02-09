@@ -26,15 +26,15 @@ use Time;
 
 proc Initialize() {
 
-/*
+
 if restart {
   read_initial_state(q);
 }
 else {
   create_initial_state(q);
 }
-*/
-load_fortran_grid("test_grid", q);
+
+//load_fortran_grid("test_grid", q);
 
 //print_array_3D(q);
 
