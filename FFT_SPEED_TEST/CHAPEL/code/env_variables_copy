@@ -1,0 +1,15 @@
+export CHPL_LAUNCHER_JOB_NAME=chapeltest
+export CHPL_LAUNCHER_WALLTIME=12:00:00
+export CHPL_LAUNCHER_QUEUE=premium
+export CHPL_LAUNCHER_ACCOUNT=NCGD0011
+export CHPL_TARGET_CPU=broadwell
+export CHPL_LAUNCHER_CORES_PER_LOCALE=36
+
+export CHPL_HOME=/glade/scratch/bachman/chapel/
+export CHPL_LLVM=none
+export CHPL_COMM=gasnet
+export CHPL_LAUNCHER=pbs-gasnetrun_ibv
+export CHPL_COMM_SUBSTRATE=ibv
+export CHPL_HWLOC=bundled
+
+export GASNET_PHYSMEM_MAX="41G"
