@@ -53,19 +53,6 @@ writeln("dx = ", dx,"                dy = ", dy);
 /* Initialize vertical modes */
 
     /* Set elements of L ([Del+L]psi=q) */
-    /*
-      L[1,2] = 2*S[1]/(H[1]*(H[1]+H[2]));
-      L[1,1] =-L[1,2];
-      if (nz > 2) {
-        for k in 2..(nz-1) {
-          L[k,k-1] = 2*S[k-1]/(H[k]*(H[k]+H[k-1]));
-          L[k,k+1] = 2*S[k]/(H[k]*(H[k]+H[k+1]));
-          L[k,k]   =-(L[k,k-1]+L[k,k+1]);
-        }
-      }
-      L[nz,nz-1] = 2*S[nz-1]/(H[nz]*(H[nz]+H[nz-1]));
-      L[nz,nz]   = -L[nz,nz-1];
-    */
       L[0,1] = 2*S[0]/(H[0]*(H[0]+H[1]));
       L[0,0] =-L[0,1];
       if (nz > 2) {

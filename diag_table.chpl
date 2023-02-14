@@ -1,12 +1,15 @@
 
-var    Q_DIAG : bool        = true;
-var    Q_DIAG_FREQ : int    = 50;
+config const    SAVE_CHECKPOINTS : bool     = true;
+config const    CHECKPOINT_FREQ : int       = 50;
 
-var    PSI_DIAG : bool      = true;
-var    PSI_DIAG_FREQ : int  = 50;
+config const    Q_DIAG : bool               = true;
+config const    Q_DIAG_FREQ : int           = 50;
 
-var    U_DIAG : bool        = true;
-var    U_DIAG_FREQ : int    = 50;
+config const    PSI_DIAG : bool             = true;
+config const    PSI_DIAG_FREQ : int         = 50;
 
-var    V_DIAG : bool        = true;
-var    V_DIAG_FREQ : int    = 50;
+config const    U_DIAG : bool               = true;
+config const    U_DIAG_FREQ : int           = 50;
+
+config const    V_DIAG : bool               = true;
+config const    V_DIAG_FREQ : int           = 50;

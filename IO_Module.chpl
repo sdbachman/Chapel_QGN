@@ -12,8 +12,8 @@ use NetCDF.C_NetCDF;
 
 proc Diagnostics(i : int) {
 
-  if (Q_DIAG) {
-    if ((i % Q_DIAG_FREQ)==0) {
+  if (Q_DIAG || SAVE_CHECKPOINTS) {
+    if ( ((i % Q_DIAG_FREQ)==0) || ((i % CHECKPOINT_FREQ)==0) ) {
       var q_tmp : [D3] real;
       execute_backward_FFTs(q_hat, q_tmp);
       normalize(q_tmp);
