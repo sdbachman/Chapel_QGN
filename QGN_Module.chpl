@@ -295,7 +295,7 @@ proc create_initial_state(ref in_arr : [?dom] real) {
   var seed=17;
   fillRandom(in_arr, seed);
 
-  for k in 1..nz {
+  for k in 0..#nz {
     var tmp = in_arr[k,..,..];
     in_arr[k,..,..] = 1e-6*(tmp - (+ reduce tmp)/(nx*ny));
   }
