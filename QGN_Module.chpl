@@ -212,7 +212,7 @@ proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
 
   /* Mean advection, beta and viscosity */
     forall (i,j,k) in D3_hat {
-      RHS[i,j,k] = RHS[i,j,k] - 0*uBar[i]*1i*kx[j,k]*q_in[i,j,k]
+      RHS[i,j,k] = RHS[i,j,k] - uBar[i]*1i*kx[j,k]*q_in[i,j,k]
                  - (beta + qyBar[i])*v_hat[i,j,k] - A8*(k2[j,k]**4)*q_in[i,j,k];
     }
 
