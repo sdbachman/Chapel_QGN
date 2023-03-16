@@ -3,24 +3,27 @@ use parameters;
 use domains;
 use arrays;
 
-proc load_fortran_grid(fort_file : string, inout arr : [?D] real) {
+proc load_fortran_grid(fort_file : string, inout arr : [?dom] real) {
 
-var tmp_arr : [D3] real;
+// Due to the row-major nature of Chapel I can't read the Fortran grid
+// directly into a distributed array correctly.  Will just read in the entire
+// array in each Locale.
 
-for k in 0..#nz {
+var D = dom.localSubdomain();
+var tmp_arr : [dom] real;
+
+for k in dom.dim(0) {
   var f = open("../" + fort_file + ((k+1) : string) + ".dat", iomode.r);
   var r = f.reader(kind=ionative);
-  for j in 0..#ny {
-    for i in 0..#nx {
+  for j in dom.dim(1) {
+    for i in dom.dim(2) {
       var tmp : real;
       r.readBinary(tmp);
-      tmp_arr[k,j,i] = tmp;
+      arr[k,j,i] = tmp;
     }
   }
   r.close();
 }
-
-arr = tmp_arr;
 
 }
 
@@ -50,11 +53,13 @@ arr = tmp_arr;
 
 proc print_array_3D(arr : [?dom]) {
 
-for k in 0..#nz {
+var D = dom.localSubdomain();
+
+for k in D.dim(0) {
   writeln("layer " + k : string);
   writeln();
-  for i in dom[0,..,0] {
-    writeln(arr[k,i,..] : real);
+  for i in D.dim(1) {
+    writeln(arr.localSlice(D)[k,i,..] : real);
     writeln();
   }
 }
@@ -62,17 +67,19 @@ for k in 0..#nz {
 
 proc print_array_2D(arr : [?dom]) {
 
-for i in dom[..,0] {
-  writeln(arr[i,..] : real);
-  writeln();
-}
+var D = dom.localSubdomain();
 
+for i in D.dim(0) {
+  writeln(arr.localSlice(D)[i,..] : real);
+}
 }
 
 proc print_array_2D_i(arr : [?dom]) {
 
-for i in dom[..,0] {
-  var tmp = arr[i,..];
+var D = dom.localSubdomain();
+
+for i in D.dim(0) {
+  var tmp = arr.localSlice(D)[i,..];
   tmp = -1i * tmp;
   writeln(tmp : real);
   writeln();

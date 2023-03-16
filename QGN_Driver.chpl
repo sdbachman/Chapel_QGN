@@ -4,6 +4,7 @@ use arrays;
 use QGN_Module;
 use ARK43;
 use IO_Module;
+use AllLocalesBarriers;
 
 use compare_fortran;
 use FFT_utils;
@@ -15,16 +16,27 @@ proc main() {
   var t0 : stopwatch;
   t0.start();
 
-  Initialize();
+  coforall loc in Locales do on loc {
 
-  for i in (Nt_start+1)..(Nt_start+Nt) {
+    //var storage = new myClass;
 
-    TimeStep();
-    DeAlias(q_hat);
+    // Put these in a separate subroutine?
+    H = H.replicand(Locales[0]);
+    S = S.replicand(Locales[0]);
 
-    Diagnostics(i);
+    Initialize();
 
+    for i in (Nt_start+1)..(Nt_start+Nt) {
+
+      TimeStep();
+
+      allLocalesBarrier.barrier();
+      DeAlias(q_hat);
+
+      Diagnostics(i);
+
+    }
+
+    openwriter("timings.txt").writeln(t0.elapsed());
   }
-
-  openwriter("timings.txt").writeln(t0.elapsed());
 }

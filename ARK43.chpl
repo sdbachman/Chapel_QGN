@@ -7,14 +7,14 @@ use FFT_utils;
 use compare_fortran;
 use Time;
 
-var N1, N2, N3, N4, N5, N6 : [D3_hat] complex;
-var L1, L2, L3, L4, L5, L6 : [D3_hat] complex;
-var q_tmp : [D3_hat] complex;
-var Mq : [D3_hat] complex;
-var k8 : [D_hat] real;
+var N1, N2, N3, N4, N5, N6 : [_D3_hat] complex;
+var L1, L2, L3, L4, L5, L6 : [_D3_hat] complex;
+var q_tmp : [_D3_hat] complex;
+var Mq : [_D3_hat] complex;
+var k8 : [_D_hat] real;
 
-var err : [D3] real;
-var err_hat : [D3_hat] complex;
+var err : [_D3] real;
+var err_hat : [_D3_hat] complex;
 
 /* Current and previous errors for adaptive time step */
   var err0, err1 : real;
@@ -88,16 +88,12 @@ proc TimeStep() {
 
   /* First RK stage, t=0 */
     GetRHS(q_hat, N1);
-    forall (i,j,k) in D3_hat {
+    forall (i,j,k) in _D3_hat.localSubdomain() {
       L1[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_hat[i,j,k];
     }
 
-   //difference3D_hat("L1", L1);
-   //print_array_3D(L1);
-   //exit();
-
   do {
-    forall (i,j,k) in D3_hat {
+    forall (i,j,k) in _D3_hat.localSubdomain() {
       Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8*k8[j,k]));
     }
 
@@ -105,7 +101,7 @@ proc TimeStep() {
       q_tmp = Mq*(q_hat + dt*(ae[2,1]*N1+ai[2,1]*L1));
       GetRHS(q_tmp,N2);
 
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat.localSubdomain() {
         L2[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
@@ -113,7 +109,7 @@ proc TimeStep() {
       q_tmp = Mq*(q_hat + dt*(ae[3,1]*N1+ae[3,2]*N2
                              +ai[3,1]*L1+ai[3,2]*L2));
       GetRHS(q_tmp,N3);
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat.localSubdomain() {
         L3[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
@@ -121,7 +117,7 @@ proc TimeStep() {
       q_tmp = Mq*(q_hat + dt*(ae[4,1]*N1+ae[4,2]*N2+ae[4,3]*N3
                              +ai[4,1]*L1+ai[4,2]*L2+ai[4,3]*L3));
       GetRHS(q_tmp,N4);
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat.localSubdomain() {
         L4[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
@@ -129,7 +125,7 @@ proc TimeStep() {
       q_tmp = Mq*(q_hat+dt*(ae[5,1]*N1+ae[5,2]*N2+ae[5,3]*N3+ae[5,4]*N4
                            +ai[5,1]*L1+ai[5,2]*L2+ai[5,3]*L3+ai[5,4]*L4));
       GetRHS(q_tmp,N5);
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat.localSubdomain() {
         L5[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
@@ -138,7 +134,7 @@ proc TimeStep() {
                              +ae[6,4]*N4+ae[6,5]*N5+ai[6,1]*L1
                              +ai[6,2]*L2+ai[6,3]*L3+ai[6,4]*L4+ai[6,5]*L5));
       GetRHS(q_tmp,N6);
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat.localSubdomain() {
         L6[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
 
@@ -154,12 +150,16 @@ proc TimeStep() {
         reject = true;
       }
       else {
+
         /* Compute update */
-        q_hat = q_hat + dt*(b[1]*(N1+L1)+b[3]*(N3+L3)
-                           +b[4]*(N4+L4)+b[5]*(N5+L5)
-                           +b[6]*(N6+L6));
+      forall (i,j,k) in _D3_hat.localSubdomain() {
+        q_hat[i,j,k] = q_hat[i,j,k] + dt*(b[1]*(N1[i,j,k]+L1[i,j,k])+b[3]*(N3[i,j,k]+L3[i,j,k])
+                                         +b[4]*(N4[i,j,k]+L4[i,j,k])+b[5]*(N5[i,j,k]+L5[i,j,k])
+                                         +b[6]*(N6[i,j,k]+L6[i,j,k]));
+      }
+
         forall i in zl {
-          q_hat[i,1,1] = 0;
+          q_hat[i,0,0] = 0;
         }
         t = t + dt;
 
