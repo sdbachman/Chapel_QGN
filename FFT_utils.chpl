@@ -21,7 +21,7 @@ var plan_b2 : fftw_plan;
 var arr_nx : [D_nx] real;
 var arr_nx2p : [D_nx2p] complex;
 var arr_ny : [D_ny] complex;
-
+var arr_ny_copy : [D_ny] complex;
 
 proc set_up_forward_FFTs() {
 
@@ -37,7 +37,7 @@ proc set_up_forward_FFTs() {
 proc set_up_backward_FFTs() {
 
   // First backward FFT is along the y dimension, for which both input and output are length ny
-    plan_b1 = fftw_plan_dft_1d(ny : c_int, c_ptrTo(arr_ny), c_ptrTo(arr_ny), 1, FFTW_ESTIMATE);
+    plan_b1 = fftw_plan_dft_1d(ny : c_int, c_ptrTo(arr_ny), c_ptrTo(arr_ny_copy), 1, FFTW_ESTIMATE);
 
   // Second backward FFT is along the x dimension, which takes an nx2p-vector as input and returns an nx-vector as output
     plan_b2 = fftw_plan_dft_c2r_1d(nx : c_int, c_ptrTo(arr_nx2p), c_ptrTo(arr_nx), FFTW_ESTIMATE);
