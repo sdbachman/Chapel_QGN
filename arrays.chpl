@@ -74,3 +74,16 @@ use domains;
   var tmp_f1T_2D : [_D_hat] complex;
   var tmp_b1 : [_D3_hat] complex;
   var tmp_b1T : [_D3_hatT] complex;
+
+/* Arrays for the ARK43 timestepping */
+  var N1, N2, N3, N4, N5, N6 : [_D3_hat] complex;
+  var L1, L2, L3, L4, L5, L6 : [_D3_hat] complex;
+  var q_tmp : [_D3_hat] complex;
+  var Mq : [_D3_hat] complex;
+  var k8 : [_D_hat] real;
+
+  var err : [_D3] real;
+  var err_hat : [_D3_hat] complex;
+
+  var ae, ai : [_ark2d] real;
+  var b, be : [_ark1d] real;

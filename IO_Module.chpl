@@ -5,16 +5,18 @@ use diag_table;
 use QGN_Module;
 use FFT_utils;
 
+use AllLocalesBarriers;
 use FileSystem;
 use BlockDist;
 use NetCDF.C_NetCDF;
 
+//////////////////////////////////////////
 
 proc Diagnostics(i : int) {
 
   if (Q_DIAG || SAVE_CHECKPOINTS) {
     if ( ((i % Q_DIAG_FREQ)==0) || ((i % CHECKPOINT_FREQ)==0) ) {
-      var q_tmp : [D3] real;
+      var q_tmp : [_D3] real;
       execute_backward_FFTs(q_hat, q_tmp);
       normalize(q_tmp);
       WriteOutput(q_tmp, "q", "seconds-1", i);
@@ -29,7 +31,7 @@ proc Diagnostics(i : int) {
 
   if (PSI_DIAG) {
     if ((i % PSI_DIAG_FREQ)==0) {
-      var psi_tmp : [D3] real;
+      var psi_tmp : [_D3] real;
       execute_backward_FFTs(psi_hat, psi_tmp);
       normalize(psi_tmp);
       WriteOutput(psi_tmp, "psi", "meters2 seconds-1", i);
@@ -38,10 +40,10 @@ proc Diagnostics(i : int) {
 
   if (U_DIAG) {
     if ((i % U_DIAG_FREQ)==0) {
-      forall (i,j,k) in D3_hat {
+      forall (i,j,k) in _D3_hat {
         u_hat[i,j,k] = -1i*ky[j,k]*psi_hat[i,j,k];
       }
-      var u_tmp : [D3] real;
+      var u_tmp : [_D3] real;
       execute_backward_FFTs(u_hat, u_tmp);
       normalize(u_tmp);
       WriteOutput(u_tmp, "u", "meters second-1", i);
@@ -53,7 +55,7 @@ proc Diagnostics(i : int) {
       forall (i,j,k) in D3_hat {
         v_hat[i,j,k] = 1i*kx[j,k]*psi_hat[i,j,k];
       }
-      var v_tmp : [D3] real;
+      var v_tmp : [_D3] real;
       execute_backward_FFTs(v_hat, v_tmp);
       normalize(v_tmp);
       WriteOutput(v_tmp, "v", "meters second-1", i);
@@ -62,9 +64,19 @@ proc Diagnostics(i : int) {
 
 }
 
+//////////////////////////////////////////
 
 proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : int) {
 
+  allLocalesBarrier.barrier();
+  /* The timestamp for the filename */
+    var currentIter = i : string;
+    const maxLen = 10;
+    const zero_len = maxLen - currentIter.size;
+    const paddedStr = (zero_len * "0") + currentIter;
+    var filename = (varName + "." + paddedStr + ".nc");
+
+  if (here.id == 0) {
   /* IDs for the netCDF file, dimensions, and variables. */
     var ncid, x_dimid, y_dimid, z_dimid, time_dimid : c_int;
     var x_varid, y_varid, z_varid, time_varid : c_int;
@@ -87,15 +99,9 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
     var yName = "y";
     var xName = "x";
 
-  /* The timestamp for the filename */
-    var currentIter = i : string;
-    const maxLen = 10;
-    const zero_len = maxLen - currentIter.size;
-    const paddedStr = (zero_len * "0") + currentIter;
-
   /* Create the file. */
     extern proc nc_create(path : c_string, cmode : c_int, ncidp : c_ptr(c_int)) : c_int;
-    nc_create( (varName + "." + paddedStr + ".nc").c_str(), NC_CLOBBER, c_ptrTo(ncid));
+    nc_create( filename.c_str(), NC_CLOBBER, c_ptrTo(ncid));
 
   /* Define the dimensions. The record dimension is defined to have
      unlimited length - it can grow as needed. In this example it is
@@ -147,6 +153,20 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
     nc_put_var_double(ncid, y_varid, c_ptrTo(yo[0]));
     nc_put_var_double(ncid, x_varid, c_ptrTo(xo[0]));
 
+    nc_close(ncid);
+  }
+
+  allLocalesBarrier.barrier();
+  writeln("On ", here.id, " at open step.");
+  allLocalesBarrier.barrier();
+
+  var ncid, varid : c_int;
+
+  /* Declaration of nc_open */
+    extern proc nc_open(path : c_string, mode : c_int, ncidp : c_ptr(c_int)) : c_int;
+  // Open the file
+    nc_open( filename.c_str() , NC_NOWRITE, c_ptrTo(ncid));
+
   /* Create arrays of c_size_t for compatibility with NetCDF-C functions. */
   /* Determine where to start reading file, and how many elements to read */
     // Start specifies a hyperslab.  It expects an array of dimension sizes
@@ -171,9 +191,13 @@ proc WriteOutput(ref arr_in: [?D] real, varName : string, units : string, i : in
 
 }
 
+//////////////////////////////////////////
+
 inline proc tuplify(x) {
   if isTuple(x) then return x; else return (x,);
 }
+
+//////////////////////////////////////////
 
 proc read_initial_state(ref q_in : [] real) {
 
@@ -222,8 +246,8 @@ proc read_initial_state(ref q_in : [] real) {
   var dom_in = CreateDomain(p, dimlens);
   q_in = DistributedRead(filename, varid, dom_in);
 
-/* Get the time and timestep from the restart file */
-  nc_inq_varid(ncid, "time".c_str(), c_ptrTo(varid));
+  /* Get the time and timestep from the restart file */
+    nc_inq_varid(ncid, "time".c_str(), c_ptrTo(varid));
 
   var start_c : c_size_t = 0;
   var count_c : c_size_t = 1;
@@ -237,6 +261,7 @@ proc read_initial_state(ref q_in : [] real) {
 
 }
 
+//////////////////////////////////////////
 
 proc DistributedRead(const filename, varid, dom_in) {
 
@@ -279,9 +304,73 @@ proc DistributedRead(const filename, varid, dom_in) {
 
 }
 
+//////////////////////////////////////////
+
 proc CreateDomain(param numDims, indicesArr) {
   var indices: numDims*range;
   for param i in 0..<numDims do
     indices[i] = 0..#indicesArr[i];
   return {(...indices)};
+}
+
+//////////////////////////////////////////
+
+proc read_background_state(filename : string) {
+
+  var ncid : c_int;
+  var varid : c_int;
+ // var ndims : c_int = 4;
+ // var dimid: c_int;
+
+  /* Declarations for the functions we will need */
+    extern proc nc_open(path : c_string, mode : c_int, ncidp : c_ptr(c_int)) : c_int;
+    extern proc nc_inq_varid(ncid: c_int, varName: c_string, varid: c_ptr(c_int));
+    extern proc nc_get_vara_double(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(64))) : c_int;
+
+  // Open the file
+    nc_open(filename.c_str(), NC_NOWRITE, c_ptrTo(ncid));
+
+  var varName = "H";
+  // Get the variable ID
+    nc_inq_varid(ncid, varName.c_str(), c_ptrTo(varid));
+
+  var start_c = 0 : c_size_t;
+  var count_c = nz : c_size_t;
+  // Read the variable
+    nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(H[0]));
+  H = H*Htot;
+
+  if (here.id == 0) {
+    writeln("-------------------------------------------------");
+    writeln(" Layer depths H/Htot ");
+    writeln(H/Htot);
+    writeln("-------------------------------------------------");
+  }
+
+  varName = "S";
+  // Get the variable ID
+    nc_inq_varid(ncid, varName.c_str(), c_ptrTo(varid));
+
+  start_c = 0 : c_size_t;
+  count_c = (nz+1) : c_size_t;
+  // Read the variable
+    nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(S[0]));
+
+  if (here.id == 0) {
+    writeln("-------------------------------------------------");
+    writeln(" f^2/N^2 ");
+    writeln(S);
+    writeln("-------------------------------------------------");
+  }
+
+  varName = "uBar";
+  // Get the variable ID
+    nc_inq_varid(ncid, varName.c_str(), c_ptrTo(varid));
+
+  start_c = 0 : c_size_t;
+  count_c = nz : c_size_t;
+  // Read the variable
+    nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(uBar[0]));
+
+  nc_close(ncid);
 }

@@ -5,6 +5,7 @@ use CTypes;
 use AllLocalesBarriers;
 use CopyAggregation;
 
+//use Time;
 use parameters;
 use domains;
 use arrays;
@@ -20,14 +21,11 @@ var plan_f2 : fftw_plan;
 var plan_b1 : fftw_plan;
 var plan_b2 : fftw_plan;
 
-/* Dummy arrays for setting up plans */
-//var arr_nx : [D_nx] real;
-//var arr_nx2p : [D_nx2p] complex;
-//var arr_ny : [D_ny] complex;
 
 
 proc set_up_forward_FFTs() {
 
+/* Dummy arrays for setting up plans */
   var arr_nx : [D_nx] real;
   var arr_nx2p : [D_nx2p] complex;
   var arr_ny : [D_ny] complex;
@@ -44,6 +42,7 @@ proc set_up_forward_FFTs() {
 
 proc set_up_backward_FFTs() {
 
+/* Dummy arrays for setting up plans */
   var arr_nx : [D_nx] real;
   var arr_nx2p : [D_nx2p] complex;
   var arr_ny : [D_ny] complex;
@@ -60,6 +59,7 @@ proc set_up_backward_FFTs() {
 
 proc execute_forward_FFTs(ref in_arr: [] real, ref out_arr : [] complex) {
 
+/* Dummy arrays for setting up plans */
   var arr_nx : [D_nx] real;
   var arr_nx2p : [D_nx2p] complex;
   var arr_ny : [D_ny] complex;
@@ -95,6 +95,7 @@ proc execute_forward_FFTs(ref in_arr: [] real, ref out_arr : [] complex) {
 
 proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] complex) {
 
+/* Dummy arrays for setting up plans */
   var arr_nx : [D_nx] real;
   var arr_nx2p : [D_nx2p] complex;
   var arr_ny : [D_ny] complex;
@@ -129,12 +130,14 @@ proc execute_forward_FFTs_single_level(ref in_arr: [] real, ref out_arr : [] com
 
 proc execute_backward_FFTs(ref in_arr: [] complex, ref out_arr : [] real) {
 
+/* Dummy arrays for setting up plans */
   var arr_nx : [D_nx] real;
   var arr_nx2p : [D_nx2p] complex;
-  var arr_ny : [D_ny] complex;
+  var arr_ny_in : [D_ny] complex;
+  var arr_ny_out : [D_ny] complex;
 
   // First backward FFT is along the y dimension, for which both input and output are length ny
-    var plan_b1 = fftw_plan_dft_1d(ny : c_int, c_ptrTo(arr_ny), c_ptrTo(arr_ny), 1, FFTW_ESTIMATE);
+    var plan_b1 = fftw_plan_dft_1d(ny : c_int, c_ptrTo(arr_ny_in), c_ptrTo(arr_ny_out), 1, FFTW_ESTIMATE);
 
   // Second backward FFT is along the x dimension, which takes an nx2p-vector as input and returns an nx-vector as output
     var plan_b2 = fftw_plan_dft_c2r_1d(nx : c_int, c_ptrTo(arr_nx2p), c_ptrTo(arr_nx), FFTW_ESTIMATE);
@@ -161,6 +164,7 @@ proc execute_backward_FFTs(ref in_arr: [] complex, ref out_arr : [] real) {
 
 }
 
+/*
 proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : [] real) {
 
     /* Temporary arrays to hold 1D transforms */
@@ -181,6 +185,7 @@ proc execute_backward_FFTs_single_level(ref in_arr: [] complex, ref out_arr : []
     }
 
 }
+*/
 
 proc transpose_2D(ref in_arr: [?D_in] complex, ref out_arr: [?D_out] complex) {
 

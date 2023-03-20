@@ -13,8 +13,7 @@ use parameters;
 use domains;
 use arrays;
 use FFT_utils;
-use Stratification;
-use Shear;
+use ARK43;
 use IO_Module;
 
 use AllLocalesBarriers;
@@ -27,21 +26,22 @@ use Time;
 
 proc Initialize() {
 
-/*
   if restart {
     read_initial_state(q);
   }
   else {
     create_initial_state(q);
   }
-*/
 
-load_fortran_grid("test_grid", q);
+//load_fortran_grid("test_grid", q);
+//./QGN_Driver -nl 2 --nx=6 --ny=6 --nz=3 --Nt=1
 
-//print_array_3D(q);
+read_background_state(background_file);
 
-writeln("---------------------------------------------------------------");
-writeln("dx = ", dx,"                dy = ", dy);
+if (here.id == 0) {
+  writeln("---------------------------------------------------------------");
+  writeln("dx = ", dx,"                dy = ", dy);
+}
 
   /* Horizontal locations of grid points (physical space) */
     forall (i,j) in _D.localSubdomain() {
@@ -51,12 +51,6 @@ writeln("dx = ", dx,"                dy = ", dy);
     forall (i,j) in _D.localSubdomain() {
         y[i,j] = -(Ly+dy)/2 + dy*(i+1);
     }
-
-    //writeln("x on ", _D.localSubdomain(), ":");
-    //print_array_2D(x);
-
-    //writeln("y on ", _D.localSubdomain(), ":");
-    //print_array_2D(y);
 
 /* Initialize vertical modes */
 
@@ -72,9 +66,6 @@ writeln("dx = ", dx,"                dy = ", dy);
       }
       L[nz-1,nz-2] = 2*S[nz-2]/(H[nz-1]*(H[nz-1]+H[nz-2]));
       L[nz-1,nz-1]   = -L[nz-1,nz-2];
-
-      //writeln("L on ", _D.localSubdomain(), ":");
-      //writeln(L);
 
     /* At this point need to set up mean zonal velocity and associated mean PV
     gradient before L gets over-written. */
@@ -102,19 +93,16 @@ writeln("dx = ", dx,"                dy = ", dy);
 
     /* Now normalize so that depth average of Modes[..,k]**2 is 1. */
       for k in 0..#nz {
-        tmp = + reduce ((H/Htot)*Modes[..,k]**2);
+        var tmp = + reduce ((H/Htot)*Modes[..,k]**2);
         Modes[..,k] = Modes[..,k] / sqrt(tmp);
       }
 
-      //writeln("EVals on ", _D.localSubdomain(), ":");
-      //writeln(EVals);
-      //writeln("Modes on ", _D.localSubdomain(), ":");
-      //writeln(Modes);
-
-    writeln("---------------------------------------------------------------");
-    writeln(" The deformation radii are ");
-    writeln( 1.0/sqrt(-EVals) );
-    writeln("---------------------------------------------------------------");
+    if (here.id == 0) {
+      writeln("---------------------------------------------------------------");
+      writeln(" The deformation radii are ");
+      writeln( 1.0/sqrt(-EVals) );
+      writeln("---------------------------------------------------------------");
+    }
 
     /* Initialize wavenumbers. We are going to do all spectral operations on the
        transposed domain, so kx will be constant in the first dimension and ky
@@ -134,26 +122,33 @@ writeln("dx = ", dx,"                dy = ", dy);
 
       k2 = kx**2+ky**2;
 
-      //if (here.id == 0) {
-      //writeln("k2 on ", _D_hat.localSubdomain(), ":");
-      //print_array_2D(k2);
-      //}
-
     /* Set up Fourier Transforms */
-      set_up_forward_FFTs();
-      set_up_backward_FFTs();
+    //  set_up_forward_FFTs();
+    //  set_up_backward_FFTs();
 
     /* Transform the initial condition */
+    if (here.id == 0) {
       writeln(" Transforming the initial condition ");
       writeln("---------------------------------------------------------------");
+    }
 
       execute_forward_FFTs(q, q_hat);
 
-      allLocalesBarrier.barrier();
       DeAlias(q_hat);
 
+
+    /* Set the arrays for the ARK43 timestepping scheme on each Locale */
+    if (here.id == 0) {
+      writeln(" Setting ARK43 arrays ");
+      writeln("---------------------------------------------------------------");
+    }
+      set_ARK43_vars();
+
+
+    if (here.id == 0) {
       writeln(" Initialization complete ");
       writeln("---------------------------------------------------------------");
+    }
 
 }
 
@@ -163,6 +158,8 @@ writeln("dx = ", dx,"                dy = ", dy);
 ////////////////////////////////////////////////////////////////
 
 proc DeAlias(ref field : [] complex) {
+
+    allLocalesBarrier.barrier();
 
     forall (i,j,k) in _D3_hat_sp1 {
       field[i,j,k] = 0;
@@ -186,12 +183,6 @@ proc DeAlias(ref field : [] complex) {
 ////////////////////////////////////////////////////////////////
 
 proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
-
-  //var uq_hat : [_D3_hat] complex;
-  //var vq_hat : [_D3_hat] complex;
-
-  //var uq_phys : [_D3] real;
-  //var vq_phys : [_D3] real;
 
   /* Get psi_hat, u_hat, v_hat */
     GetPsi(q_in);
@@ -237,8 +228,6 @@ proc Jacobian(ref q_in : [] complex, ref jaco_hat : [] complex) {
 
 proc GetRHS(ref q_in : [] complex, ref RHS : [] complex) {
 
-  //var drag_tmp : [_D_hat] complex;
-  //var drag_hat : [_D_hat] complex;
   var Uu_drag : [_D] real;
   var Uv_drag : [_D] real;
 

@@ -13,16 +13,10 @@ use IO;
 
 proc main() {
 
-  var t0 : stopwatch;
-  t0.start();
-
   coforall loc in Locales do on loc {
 
-    //var storage = new myClass;
-
-    // Put these in a separate subroutine?
-    H = H.replicand(Locales[0]);
-    S = S.replicand(Locales[0]);
+    var t0 : stopwatch;
+    t0.start();
 
     Initialize();
 
@@ -30,13 +24,16 @@ proc main() {
 
       TimeStep();
 
-      allLocalesBarrier.barrier();
       DeAlias(q_hat);
 
-      Diagnostics(i);
+      //Diagnostics(i);
 
-    }
+      //if (here.id == 0) {
+      //  writeln(t0.elapsed());
+      //}
 
-    openwriter("timings.txt").writeln(t0.elapsed());
-  }
-}
+    } // Timestepping loop
+
+  } // coforall loop
+
+} // main

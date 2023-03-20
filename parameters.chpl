@@ -1,6 +1,9 @@
 /* Restart? */
 config const restart : bool = false;
 
+/* Background settings */
+config const background_file = "background_eady.nc";
+
 /* Timestepping */
 config var Nt_start : int = 0;
 config var Nt : int = 10000;

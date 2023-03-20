@@ -6,28 +6,11 @@ use FFT_utils;
 
 use compare_fortran;
 use Time;
+use AllLocalesBarriers;
 
-var N1, N2, N3, N4, N5, N6 : [_D3_hat] complex;
-var L1, L2, L3, L4, L5, L6 : [_D3_hat] complex;
-var q_tmp : [_D3_hat] complex;
-var Mq : [_D3_hat] complex;
-var k8 : [_D_hat] real;
 
-var err : [_D3] real;
-var err_hat : [_D3_hat] complex;
+proc set_ARK43_vars() {
 
-/* Current and previous errors for adaptive time step */
-  var err0, err1 : real;
-
-/* Explicit & implicit RK coefficients */
-  var ae, ai : [{1..6,1..6}] real;
-
-/* Error coefficients */
-  var b, be : [{1..6}] real;
-
-  var reject : bool;
-
-/* TODO: Check this */
   k8 = k2**4;
 
   err0 = TOL;
@@ -83,8 +66,12 @@ var err_hat : [_D3_hat] complex;
   be[4] = -2768025.0/128864768.0;
   be[5] = 169839.0/3864644.0;
   be[6] = -5247.0/225920.0;
+}
 
 proc TimeStep() {
+
+  var reject : bool = false;
+  var err0 = TOL;
 
   /* First RK stage, t=0 */
     GetRHS(q_hat, N1);
@@ -98,9 +85,11 @@ proc TimeStep() {
     }
 
     /* Second RK stage */
-      q_tmp = Mq*(q_hat + dt*(ae[2,1]*N1+ai[2,1]*L1));
+      forall (i,j,k) in _D3_hat.localSubdomain() {
+        q_tmp[i,j,k] = Mq[i,j,k]*(q_hat[i,j,k] + dt*(ae[2,1]*N1[i,j,k]+ai[2,1]*L1[i,j,k]));
+        //q_tmp[i,j,k] = Mq[i,j,k]*(q_hat[i,j,k] + dt*(0.5*N1[i,j,k]+0.25*L1[i,j,k]));
+      }
       GetRHS(q_tmp,N2);
-
       forall (i,j,k) in _D3_hat.localSubdomain() {
         L2[i,j,k] = -(A2*k2[j,k] + A8*k8[j,k])*q_tmp[i,j,k];
       }
@@ -143,11 +132,19 @@ proc TimeStep() {
                +be[4]*(N4+L4)+be[5]*(N5+L5)+be[6]*(N6+L6);
       execute_backward_FFTs(err_hat, err);
       normalize(err);
-      err1 = dt*(max reduce (abs(err)));
+
+      // Make sure all Locales are synchronized before this global gather
+      allLocalesBarrier.barrier();
+      var err1 = dt*(max reduce (abs(err)));
+      allLocalesBarrier.barrier();
 
       if (err1 > TOL) {
-        dt = 0.75*dt;
-        reject = true;
+        // Reduce timestep only on Locale 0, so it is only done once
+        if (here.id == 0) {
+          dt = 0.75*dt;
+        }
+          reject = true;
+          allLocalesBarrier.barrier();
       }
       else {
 
@@ -161,12 +158,19 @@ proc TimeStep() {
         forall i in zl {
           q_hat[i,0,0] = 0;
         }
-        t = t + dt;
 
-        /* Stepsize adjustment PI.3.4, divide by 4 for 4th order method with 3rd embedded */
-        dt = min(dt*((0.75*TOL/err1)**0.075)*((err0/err1)**0.1),dt_max);
-        err0 = err1;
-        reject = false;
+        // Increment t, change dt, and reset err0 and reject only on Locale 0
+        if (here.id == 0) {
+          t = t + dt;
+
+          /* Stepsize adjustment PI.3.4, divide by 4 for 4th order method with 3rd embedded */
+          dt = min(dt*((0.75*TOL/err1)**0.075)*((err0/err1)**0.1),dt_max);
+          err0 = err1;
+          reject = false;
+        }
+
+        allLocalesBarrier.barrier();
+
       }
   } while reject;
 

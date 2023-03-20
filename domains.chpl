@@ -37,10 +37,8 @@ var _D_hatT = D_hatT dmapped Block(D_hatT, targetLocales=myTargetLocales2D);
 var D_nx = {0..#nx};
 var _D_nx = D_nx dmapped Replicated();
 var D_ny = {0..#ny};
-//var _D_ny = D_ny dmapped Replicated();
 var _D_ny = D_ny dmapped Block(D_ny);
 var D_nx2p = {0..#nx2p};
-//var _D_nx2p = D_nx2p dmapped Replicated();
 var _D_nx2p = D_nx2p dmapped Block(D_nx2p);
 var D_ny2p = {0..#ny2p};
 
@@ -64,3 +62,9 @@ var D3_hat_sp1 = {0..#nz, (nx3p-1)..(nx2p-1), 0..#ny};
 var _D3_hat_sp1 = D3_hat_sp1 dmapped Replicated();
 var D3_hat_sp2 = {0..#nz, 0..#nx2p, (ny3p-1)..(ny3p2-1)};
 var _D3_hat_sp2 = D3_hat_sp2 dmapped Replicated();
+
+/* Special domains for ARK43 */
+var ark1d = {1..6};
+var _ark1d = ark1d dmapped Replicated();
+var ark2d = {1..6, 1..6};
+var _ark2d = ark2d dmapped Replicated();
