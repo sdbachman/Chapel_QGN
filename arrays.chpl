@@ -75,7 +75,7 @@ use domains;
   var tmp_b1 : [_D3_hat] complex;
   var tmp_b1T : [_D3_hatT] complex;
 
-/* Arrays for the ARK43 timestepping */
+/* Arrays and variables for the ARK43 timestepping */
   var N1, N2, N3, N4, N5, N6 : [_D3_hat] complex;
   var L1, L2, L3, L4, L5, L6 : [_D3_hat] complex;
   var q_tmp : [_D3_hat] complex;
@@ -87,3 +87,7 @@ use domains;
 
   var ae, ai : [_ark2d] real;
   var b, be : [_ark1d] real;
+
+  // These will be only on Locale 0
+  var err0, err1 : real;
+  var reject : bool = false;

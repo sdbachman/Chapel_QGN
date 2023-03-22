@@ -11,9 +11,10 @@ use AllLocalesBarriers;
 
 proc set_ARK43_vars() {
 
+  err0 = TOL;
+
   k8 = k2**4;
 
-  err0 = TOL;
   ae[1,1] = 0;
   ae[2,1] = 0.5;
   ae[3,1] = 13861.0/62500.0;
@@ -69,9 +70,6 @@ proc set_ARK43_vars() {
 }
 
 proc TimeStep() {
-
-  var reject : bool = false;
-  var err0 = TOL;
 
   /* First RK stage, t=0 */
     GetRHS(q_hat, N1);
@@ -135,7 +133,7 @@ proc TimeStep() {
 
       // Make sure all Locales are synchronized before this global gather
       allLocalesBarrier.barrier();
-      var err1 = dt*(max reduce (abs(err)));
+      err1 = dt*(max reduce (abs(err)));
       allLocalesBarrier.barrier();
 
       if (err1 > TOL) {

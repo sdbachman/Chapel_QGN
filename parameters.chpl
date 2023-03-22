@@ -2,7 +2,7 @@
 config const restart : bool = false;
 
 /* Background settings */
-config const background_file = "background_eady.nc";
+config const background_file = "background_eady.nc1";
 
 /* Timestepping */
 config var Nt_start : int = 0;

@@ -33,6 +33,7 @@ proc Initialize() {
     create_initial_state(q);
   }
 
+ writeln("In module Nt_start is: ", Nt_start);
 //load_fortran_grid("test_grid", q);
 //./QGN_Driver -nl 2 --nx=6 --ny=6 --nz=3 --Nt=1
 
