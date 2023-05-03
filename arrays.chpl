@@ -89,3 +89,8 @@ use domains;
   // These will be only on Locale 0
   var err0, err1 : real(rp);
   var reject : bool = false;
+
+/* For QG Leith */
+  var A8L : [zl] real(rp);
+  var q8_tmp : [D3_hat] real(rp);
+  var k4 : [D_hat] real(rp);

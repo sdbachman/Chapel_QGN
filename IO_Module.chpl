@@ -291,8 +291,6 @@ proc DistributedRead(const filename, varid, D) {
 
   var dist_array : [D] real(rp);
 
-    writeln("Local subdomain on Locale ", here.id, ": \n", D);
-
     /* Some external procedure declarations */
       extern proc nc_get_vara_double(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(64))) : c_int;
       extern proc nc_get_vara_float(ncid : c_int, varid : c_int, startp : c_ptr(c_size_t), countp : c_ptr(c_size_t), ip : c_ptr(real(32))) : c_int;
@@ -315,11 +313,6 @@ proc DistributedRead(const filename, varid, D) {
 
       var ncid : c_int;
       nc_open(filename.c_str(), NC_NOWRITE, ncid);
-
-      writeln("URL on Locale ", here.id, ": ", filename);
-
-      writeln("Start_c on ", here.id, ": ", start_c);
-      writeln("Count_c on ", here.id, ": ", count_c);
 
       if (rp == 64) {
         nc_get_vara_double(ncid, varid, c_ptrTo(start_c), c_ptrTo(count_c), c_ptrTo(dist_array[start]));
