@@ -6,22 +6,28 @@ use ARK43;
 use IO_Module;
 use AllLocalesBarriers;
 
-use compare_fortran;
+//use compare_fortran;
 use FFT_utils;
 use Time;
 use IO;
 
+//config const num_iters = 5;
+
 proc main() {
 
-  coforall loc in Locales with (ref Nt_start) do on loc {
+  //var timings : [1..num_iters] real;
 
-    var t0 : stopwatch;
-    t0.start();
+  //for itr in 1..num_iters do {
 
     Initialize();
- writeln("In driver Nt_start is: ", Nt_start);
+
+    //var t0 : stopwatch;
+    //t0.start();
 
     for i in (Nt_start+1)..(Nt_start+Nt) {
+
+    //var t0 : stopwatch;
+    //t0.start();
 
       TimeStep();
 
@@ -29,12 +35,19 @@ proc main() {
 
       Diagnostics(i);
 
-      //if (here.id == 0) {
-      //  writeln(t0.elapsed());
-      //}
+     //t0.stop();
+     //writeln(t0.elapsed());
+     //t0.clear();
 
     } // Timestepping loop
 
-  } // coforall loop
+    //timings[itr] = t0.elapsed();
+    //t0.clear();
+
+//} // iter
+
+//writeln(timings[1..]);
+//var time_mean = (+ reduce timings[1..]) / num_iters;
+//writeln(time_mean);
 
 } // main

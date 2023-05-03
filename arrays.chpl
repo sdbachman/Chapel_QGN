@@ -2,92 +2,90 @@ use parameters;
 use domains;
 
 /* Location of horizontal grid */
-  var x : [_D] real;
-  var y : [_D] real;
+  var x : [D] real(rp);
+  var y : [D] real(rp);
 
 /* Horizontal grid spacing */
-  const dx : real = Lx / nx;
-  const dy : real = Ly / ny;
+  const dx : real(rp) = Lx / nx;
+  const dy : real(rp) = Ly / ny;
 
 /* Vertical grid */
-  var z : [_zl] real;
+  var z : [zl] real(rp);
 
 /* Vertical layer depths: H(nz) is the bottom layer; S=f^2/N^2(z) */
-  var H : [_zl] real;
-  var S : [_zi] real;
+  var H : [zl] real(rp);
+  var S : [zi] real(rp);
 
 /* Zonal mean velocity profile and associated meridional PV gradient */
-  var uBar : [_zl] real;
-  var qyBar : [_zl] real;
+  var uBar : [zl] real(rp);
+  var qyBar : [zl] real(rp);
 
 /* Vertical modes, EVals = -kd^2 */
-  var Modes : [_zl2] real;
-  var EVals : [_zl] real;
+  var Modes : [zl2] real(rp);
+  var EVals : [zl] real(rp);
 
 /* L matrix, LeftEVs */
-  var L : [_zl2] real;
-  var ModesL : [_zl2] real;
+  var L : [zl2] real(rp);
+  var ModesL : [zl2] real(rp);
 
 /* Imaginary part of eigenvalues */
-  var EValsI : [_zl] real;
+  var EValsI : [zl] real(rp);
 
 /* Wavenumbers */
-  var kx : [_D_hat] real;
-  var ky : [_D_hat] real;
-  var k2 : [_D_hat] real;
+  var kx : [D_hat] real(rp);
+  var ky : [D_hat] real(rp);
+  var k2 : [D_hat] real(rp);
 
 /* Potential vorticity */
-  var q : [_D3] real;
+  var q : [D3] real(rp);
 
 /* Spectral potential vorticity */
-  var q_hat : [_D3_hat] complex;
+  var q_hat : [D3_hat] complex(cp);
 
 /* Spectral streamfunction */
-  var psi_hat : [_D3_hat] complex;
+  var psi_hat : [D3_hat] complex(cp);
+
+/* Modal decomposition */
+  var q_hat_mode : [D3_hat] complex(cp);
+  var psi_hat_mode : [D3_hat] complex(cp);
 
 /* Spectral buoyancy */
-  var b_hat : [_D3_hat] complex;
+  var b_hat : [D3_hat] complex(cp);
 
 /* Spectral velocities */
-  var u_hat : [_D3_hat] complex;
-  var v_hat : [_D3_hat] complex;
+  var u_hat : [D3_hat] complex(cp);
+  var v_hat : [D3_hat] complex(cp);
 
 /* Physical space arrays */
-  var q_phys : [_D3] real;
-  var u_phys : [_D3] real;
-  var v_phys : [_D3] real;
+  var q_phys : [D3] real(rp);
+  var u_phys : [D3] real(rp);
+  var v_phys : [D3] real(rp);
 
 /* For the Jacobian */
-  var uq_hat : [_D3_hat] complex;
-  var vq_hat : [_D3_hat] complex;
-  var uq_phys : [_D3] real;
-  var vq_phys : [_D3] real;
+  var uq_hat : [D3_hat] complex(cp);
+  var vq_hat : [D3_hat] complex(cp);
+  var uq_phys : [D3] real(rp);
+  var vq_phys : [D3] real(rp);
 
 /* For the drag term */
-  var drag_tmp : [_D_hat] complex;
-  var drag_hat : [_D_hat] complex;
-
-/* Temporary arrays to hold 1D transforms */
-  var tmp_f1 : [_D3_hatT] complex;
-  var tmp_f1T : [_D3_hat] complex;
-  var tmp_f1_2D : [_D_hatT] complex;
-  var tmp_f1T_2D : [_D_hat] complex;
-  var tmp_b1 : [_D3_hat] complex;
-  var tmp_b1T : [_D3_hatT] complex;
+  var drag_tmp : [D_hat] complex(cp);
+  var drag_hat : [D_hat] complex(cp);
+  var Uu_drag : [D] real(rp);
+  var Uv_drag : [D] real(rp);
 
 /* Arrays and variables for the ARK43 timestepping */
-  var N1, N2, N3, N4, N5, N6 : [_D3_hat] complex;
-  var L1, L2, L3, L4, L5, L6 : [_D3_hat] complex;
-  var q_tmp : [_D3_hat] complex;
-  var Mq : [_D3_hat] complex;
-  var k8 : [_D_hat] real;
+  var N1, N2, N3, N4, N5, N6 : [D3_hat] complex(cp);
+  var L1, L2, L3, L4, L5, L6 : [D3_hat] complex(cp);
+  var q_tmp : [D3_hat] complex(cp);
+  var Mq : [D3_hat] complex(cp);
+  var k8 : [D_hat] real(rp);
 
-  var err : [_D3] real;
-  var err_hat : [_D3_hat] complex;
+  var err : [D3] real(rp);
+  var err_hat : [D3_hat] complex(cp);
 
-  var ae, ai : [_ark2d] real;
-  var b, be : [_ark1d] real;
+  var ae, ai : [ark2d] real(rp);
+  var b, be : [ark1d] real(rp);
 
   // These will be only on Locale 0
-  var err0, err1 : real;
+  var err0, err1 : real(rp);
   var reject : bool = false;
