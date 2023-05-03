@@ -1,46 +1,14 @@
-SERIAL
-source ~/.chapel_none
-chpl -lopenblas -lfftw3 -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib" test.chpl --fast
 
-SERIAL, MULTI-THREADED, SINGLE NODE
-source ~/.chapel_none_mpt
-chpl -lopenblas -lfftw3_threads -lfftw3 -lm -lpthread -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib" test.chpl --fast --set autoInitFFTW_MT
-
-PARALLEL, SINGLE THREADED, MULTI NODE
-source ~/.chapel_pbs-gasnet
-chpl -lopenblas -lfftw3 -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib" test.chpl --fast
-
-PARALLEL, MULTI_THREADED, MULTI NODE
-source ~/.chapel_pbs-gasnet_mpt
-chpl -lopenblas -lfftw3_threads -lfftw3 -lm -lpthread -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw-mpi/3.3.9/mpt/2.25/gnu/10.1.0/lib" test.chpl --fast --set autoInitFFTW_MT
-
-TESTING INTEL
-source ~/.chapel_pbs-gasnet_intel
-chpl -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -sisFFTW_MKL -I/glade/u/apps/opt/intel/2020u1/mkl/include/fftw -I/glade/u/apps/opt/intel/2020u1/mkl/include -L/glade/u/apps/opt/intel/2020u1/mkl/lib/intel64 --ldflags="-Wl,-rpath,/glade/u/apps/opt/intel/2020u1/mkl/lib/intel64" test.chpl --fast --set isFFTW_MKL
-
-PARALLEL, SINGLE THREADED, MULTI NODE W/ NETCDF
-source ~/.chapel_pbs-gasnet
-chpl -lopenblas -lfftw3 -lnetcdf -L/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/openblas/0.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" QGN_Driver.chpl --fast
-
-
-PRODUCTION (No transposing)
-source ~/.chapel_QG_64
+DOUBLE-PRECISION VERSION
+source /glade/u/home/bachman/.chapel_QG_64
 chpl -srp=64 -scp=128 -lfftw3 -lnetcdf -L/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.9/gnu/10.1.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" QGN_Driver.chpl --fast
 
-source ~/.chapel_QG_32
+SINGLE-PRECISION VERSION
+source /glade/u/home/bachman/.chapel_QG_32
 chpl -srp=32 -scp=64 -lfftw3f -lnetcdf -L/glade/u/apps/ch/opt/fftw/3.3.8/gnu/8.3.0/lib -L/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib -I/glade/u/apps/ch/opt/fftw/3.3.8/gnu/8.3.0/include -I/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/include --ldflags="-Wl,-rpath,/glade/u/apps/ch/opt/fftw/3.3.8/gnu/8.3.0/lib -Wl,-rpath,/glade/u/apps/ch/opt/netcdf/4.8.1/gnu/10.1.0/lib" QGN_Driver.chpl --fast
 
 
-CHAPEL:
+ARRAY ORIENTATION
 Physical space variables stored in (nz,ny,nx) arrays. This is to allow passing by reference and to be compatible with C-pointers in FFTW without slicing.
-Spectral space variables stored in (nz, nx/2+1, ny) arrays, after transposing.
-
-FFTW multi-threading is favorable if we are doing 2D transforms on larger (ny/nz), but it is always extremely undesirable if we are doing 1D transforms.
-   - i.e. the more we lean on the parallelism of FFTW rather than the parallelism of Chapel.
-PARALLEL (using GASNet) always seems to be faster than SERIAL.
-Single-threading seems to be favorable for 2D at smaller (ny/nz).
-Single-threaded 2D tends to be a few multiples faster than 1D, except at large (ny/nz).
-   - i.e. when Chapel can parallelize the 1D more efficiently than the 2D
-
-NOTE: This has not yet taken into account any overhead from transposing in the 1D transforms, or trying FFTW-MPI for the 2D.
+Spectral space variables stored in (nz,ny,nx/2+1) arrays.
 
