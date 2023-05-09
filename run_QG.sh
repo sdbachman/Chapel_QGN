@@ -10,5 +10,4 @@
 module purge
 source ~/.chapel_QG_64
 
-#./QGN_Driver --restart=false --Nt=10000 --Q_DIAG_FREQ=50 --QG_Leith_coeff=500.0
-./QGN_Driver --restart=false --Nt=10000 --nz=3 --background_file=background_eady.nc1 --Q_DIAG_FREQ=50 --QG_Leith_coeff=500.0
+./QGN_Driver --restart=false --Nt=10000 --nz=3 --background_file=background_eady_3.nc1 --Q_DIAG_FREQ=50 --QG_Leith_coeff=1.0
