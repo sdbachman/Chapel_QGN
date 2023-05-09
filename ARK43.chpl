@@ -75,8 +75,8 @@ proc TimeStep() {
     q8_tmp[i,j,k] = k8[j,k] * abs(q_hat[i,j,k])**2;
   }
 
-  forall k in zl {
-    A8L[k] = (QG_Leith_coeff * Lx/(nx*pi))**12 * sqrt( 2*( + reduce q8_tmp[..,..,k..k] )) / (nx*ny);
+  forall i in zl {
+    A8L[i] = (QG_Leith_coeff * Lx/(nx*pi))**12 * sqrt( 2*( + reduce q8_tmp[i..i,..,..] )) / (nx*ny);
   }
 
 
@@ -84,12 +84,12 @@ proc TimeStep() {
     GetRHS(q_hat, N1);
 
     forall (i,j,k) in D3_hat {
-      L1[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_hat[i,j,k];
+      L1[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_hat[i,j,k];
     }
 
   do {
     forall (i,j,k) in D3_hat {
-      Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8L[k]*k8[j,k]));
+      Mq[i,j,k] = 1.0/(1.0 + 0.25*dt*(A2*k2[j,k]+A8L[i]*k8[j,k]));
     }
 
     /* Second RK stage */
@@ -98,7 +98,7 @@ proc TimeStep() {
       }
       GetRHS(q_tmp,N2);
       forall (i,j,k) in D3_hat {
-        L2[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_tmp[i,j,k];
+        L2[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Third RK stage */
@@ -106,7 +106,7 @@ proc TimeStep() {
                              +ai[3,1]*L1+ai[3,2]*L2));
       GetRHS(q_tmp,N3);
       forall (i,j,k) in D3_hat {
-        L3[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_tmp[i,j,k];
+        L3[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Fourth RK stage */
@@ -114,7 +114,7 @@ proc TimeStep() {
                              +ai[4,1]*L1+ai[4,2]*L2+ai[4,3]*L3));
       GetRHS(q_tmp,N4);
       forall (i,j,k) in D3_hat {
-        L4[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_tmp[i,j,k];
+        L4[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Fifth RK stage */
@@ -122,7 +122,7 @@ proc TimeStep() {
                            +ai[5,1]*L1+ai[5,2]*L2+ai[5,3]*L3+ai[5,4]*L4));
       GetRHS(q_tmp,N5);
       forall (i,j,k) in D3_hat {
-        L5[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_tmp[i,j,k];
+        L5[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Sixth RK stage */
@@ -131,12 +131,13 @@ proc TimeStep() {
                              +ai[6,2]*L2+ai[6,3]*L3+ai[6,4]*L4+ai[6,5]*L5));
       GetRHS(q_tmp,N6);
       forall (i,j,k) in D3_hat {
-        L6[i,j,k] = -(A2*k2[j,k] + A8L[k]*k8[j,k])*q_tmp[i,j,k];
+        L6[i,j,k] = -(A2*k2[j,k] + A8L[i]*k8[j,k])*q_tmp[i,j,k];
       }
 
     /* Error control */
       err_hat = be[1]*(N1+L1)+be[3]*(N3+L3)
                +be[4]*(N4+L4)+be[5]*(N5+L5)+be[6]*(N6+L6);
+
       execute_backward_FFTs(err_hat, err);
       normalize(err);
 

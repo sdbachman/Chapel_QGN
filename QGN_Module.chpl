@@ -259,5 +259,8 @@ proc create_initial_state(ref in_arr : [?dom] real(rp)) {
   fillRandom(tmp, seed);
 
   tmp = 1e-6*(tmp - (+ reduce tmp)/(D.size));
+  for i in 1..nx {
+    tmp[..,..,i..i] = tmp[..,..,i..i] + 1e-5*sin(16.0*pi*(i-1) / nx);
+  }
   in_arr[D] = tmp;
 }
