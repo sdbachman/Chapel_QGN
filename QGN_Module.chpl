@@ -44,11 +44,13 @@ proc Initialize() {
         y[i,j] = -(Ly+dy)/2 + dy*(i+1);
     }
 
+    /* THIS IS NOT NEEDED SINCE WE DO THIS WHEN MAKING THE INPUT FILE
     /* Normalize so that the depth average of Modes[..,k]**2 is 1. */
       for k in 0..#nz {
         var tmp = + reduce ((H/Htot)*Modes[..,k]**2);
         Modes[..,k] = Modes[..,k] / sqrt(tmp);
       }
+    */
 
       writeln("---------------------------------------------------------------");
       writeln(" The deformation radii are ");

@@ -62,6 +62,46 @@ proc Diagnostics(i : int) {
     }
   }
 
+  if (Q_MODE_DIAG) {
+    if ((i % Q_MODE_DIAG_FREQ)==0) {
+      var q_mode_tmp : [D3] real(rp);
+      execute_backward_FFTs(q_hat_mode, q_mode_tmp);
+      normalize(q_mode_tmp);
+      WriteOutput(q_mode_tmp, "q_mode", "seconds-1", i);
+    }
+  }
+
+  if (PSI_MODE_DIAG) {
+    if ((i % PSI_MODE_DIAG_FREQ)==0) {
+      var psi_mode_tmp : [D3] real(rp);
+      execute_backward_FFTs(psi_hat_mode, psi_mode_tmp);
+      normalize(psi_mode_tmp);
+      WriteOutput(psi_mode_tmp, "psi_mode", "meters2 seconds-1", i);
+    }
+  }
+
+  if (JACOBIAN_MODE_DIAG) {
+    if ((i % JACOBIAN_MODE_DIAG_FREQ)==0) {
+
+      var jacobian_hat : [D3_hat] complex(cp);
+      var jacobian_hat_mode : [D3_hat] complex(cp);
+
+      Jacobian(q_hat,jacobian_hat);
+
+      /* Get q_hat_mode and psi_hat_mode */
+      forall (i,j,k) in D3_hat {
+        for ii in 0..#nz {
+          jacobian_hat_mode[i,j,k] = jacobian_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*jacobian[ii,j,k];
+        }
+        jacobian_hat_mode[i,j,k] = jacobian_hat_mode[i,j,k]/Htot;
+      }
+
+      var jacobian_mode : [D3] real(rp);
+      execute_backward_FFTs(jacobian_hat_mode, jacobian_mode);
+      normalize(jacobian_mode);
+      WriteOutput(jacobian_mode, "jacobian_mode", "meters second-2", i);
+    }
+  }
 }
 
 //////////////////////////////////////////
