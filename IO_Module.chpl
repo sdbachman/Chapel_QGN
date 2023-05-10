@@ -91,7 +91,7 @@ proc Diagnostics(i : int) {
       /* Get q_hat_mode and psi_hat_mode */
       forall (i,j,k) in D3_hat {
         for ii in 0..#nz {
-          jacobian_hat_mode[i,j,k] = jacobian_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*jacobian[ii,j,k];
+          jacobian_hat_mode[i,j,k] = jacobian_hat_mode[i,j,k] + H[ii]*Modes[ii,i]*jacobian_hat[ii,j,k];
         }
         jacobian_hat_mode[i,j,k] = jacobian_hat_mode[i,j,k]/Htot;
       }
