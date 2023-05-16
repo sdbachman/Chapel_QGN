@@ -272,7 +272,7 @@ proc create_initial_state(ref in_arr : [?dom] real(rp)) {
 
   for (i,j,k) in D {
     tmp[i,j,k] = 1e-5*sin(48.0*pi*(k-1) / nx);
-    tmp[i,j,k] = tmp[i,j,k] + 2e-5*cos(23.0*pi*(j-1) / ny);
+    tmp[i,j,k] = tmp[i,j,k] + 2e-5*cos(32.0*pi*(j-1) / ny);
   }
 
   in_arr[D] = tmp;
