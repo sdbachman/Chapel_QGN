@@ -3,6 +3,7 @@ use domains;
 use arrays;
 use QGN_Module;
 use FFT_utils;
+use Math;
 
 use compare_fortran;
 use Time;

@@ -13,7 +13,7 @@ var D = dom.localSubdomain();
 var tmp_arr : [dom] real;
 
 for k in dom.dim(0) {
-  var f = open("../" + fort_file + ((k+1) : string) + ".dat", iomode.r);
+  var f = open("../" + fort_file + ((k+1) : string) + ".dat", ioMode.r);
   var r = f.reader(kind=ionative);
   for j in dom.dim(1) {
     for i in dom.dim(2) {
@@ -31,7 +31,7 @@ proc load_1layer_test(inout arr : [?D] real) {
 
 var tmp_arr : [D] real;
 
-var f = open("../test_grid.dat", iomode.r);
+var f = open("../test_grid.dat", ioMode.r);
 var r = f.reader(kind=ionative);
 for j in 0..#ny {
   for i in 0..#nx {
@@ -93,7 +93,7 @@ proc difference3D(fort_file : string, chapel_arr : [?dom]) {
 var tmp_arr : [D3] real;
 
 for k in 0..#nz {
-  var f = open("../" + fort_file + ((k+1) : string) + ".dat", iomode.r);
+  var f = open("../" + fort_file + ((k+1) : string) + ".dat", ioMode.r);
   var r = f.reader(kind=ionative);
   for j in 0..#ny {
     for i in 0..#nx {
@@ -115,7 +115,7 @@ proc difference3D_hat(fort_file : string, chapel_arr : [?dom]) {
 var tmp_arr : [D3_hat] real;
 
 for k in 0..#nz {
-  var f = open("../" + fort_file + ((k+1) : string) + ".dat", iomode.r);
+  var f = open("../" + fort_file + ((k+1) : string) + ".dat", ioMode.r);
   var r = f.reader(kind=ionative);
   for j in 0..#ny {
     for i in 0..#nx2p {
@@ -136,7 +136,7 @@ proc difference2D(fort_file : string, chapel_arr : [?dom]) {
 
 var tmp_arr : [D] real;
 
-var f = open("../" + fort_file, iomode.r);
+var f = open("../" + fort_file, ioMode.r);
 var r = f.reader(kind=ionative);
 for j in 0..#ny {
   for i in 0..#nx {
@@ -155,7 +155,7 @@ proc difference2D_hat(fort_file : string, chapel_arr : [?dom]) {
 
 var tmp_arr : [D_hat] real;
 
-var f = open("../" + fort_file, iomode.r);
+var f = open("../" + fort_file, ioMode.r);
 var r = f.reader(kind=ionative);
 for j in 0..#ny {
   for i in 0..#nx2p {
@@ -174,7 +174,7 @@ proc difference_nz(fort_file : string, chapel_arr : [?dom]) {
 
 var tmp_arr : [zl2] real;
 
-var f = open("../" + fort_file, iomode.r);
+var f = open("../" + fort_file, ioMode.r);
 var r = f.reader(kind=ionative);
 for j in 0..#nz {
   for i in 0..#nz {
